@@ -10,6 +10,7 @@ On it's own the mod adds 6 new perks, and 2 new burdens. All were designed to be
 
 ## Adding custom content
 Some basic C# and Rain World modding knowledge is required, and I'll assume it's known.  
+Remember to reference `ExpeditionEnhanced.dll` in your project!  
 Also feel free to poke around the source code and example content in the [Example Content directory](ExpeditionEnhanced/ExampleContent) for any reason.
 
 ### Custom Perks
