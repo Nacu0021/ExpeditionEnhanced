@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 
 namespace ExpeditionEnhanced
 {
-    public class ExpeditionEnhanced
+    public class ExpeditionsEnhanced
     {
         public static List<CustomPerk> customPerks = new List<CustomPerk>();
         public static List<CustomBurden> customBurdens = new List<CustomBurden>();

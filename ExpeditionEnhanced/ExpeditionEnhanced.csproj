@@ -86,7 +86,7 @@
     <Compile Include="ExampleContent\SaintTongue.cs" />
     <Compile Include="ExampleContent\Confused.cs" />
     <Compile Include="ExampleContent\Crippled.cs" />
-    <Compile Include="ExpeditionEnhanced.cs" />
+    <Compile Include="ExpeditionsEnhanced.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

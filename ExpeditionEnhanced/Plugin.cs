@@ -35,8 +35,8 @@ namespace ExpeditionEnhanced
             {
                 AppliedAlreadyDontDoItAgainPlease = true;
 
-                ExpeditionEnhanced.Apply();
-                ExpeditionEnhanced.RegisterExpeditionContent( new BlueFruit(), new Leeching(), new Friend(), new SaintTongue(), new ExplosiveDamage(), new MakeAWish(), //Perks
+                ExpeditionsEnhanced.Apply();
+                ExpeditionsEnhanced.RegisterExpeditionContent( new BlueFruit(), new Leeching(), new Friend(), new SaintTongue(), new ExplosiveDamage(), new MakeAWish(), //Perks
                                                               new Crippled(), new Confused() ); //Burdens
                 ExamplePerkHooks.Apply();
                 ExampleBurdenHooks.Apply();

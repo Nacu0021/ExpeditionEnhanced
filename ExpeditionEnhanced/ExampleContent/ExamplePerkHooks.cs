@@ -35,7 +35,7 @@ namespace ExpeditionEnhanced.ExampleContent
         {
             orig.Invoke(self, weapon, thrower, victim, hit);
 
-            if (ExpeditionEnhanced.ActiveContent("unl-boomdamage") && weapon != null && thrower != null && victim != null && thrower is Player && hit)
+            if (ExpeditionsEnhanced.ActiveContent("unl-boomdamage") && weapon != null && thrower != null && victim != null && thrower is Player && hit)
             {
                 //Make sure its an actual hit (no phantom explosions), and that bombs dont create splosions
                 if (weapon is not ScavengerBomb and not SingularityBomb)
@@ -74,7 +74,7 @@ namespace ExpeditionEnhanced.ExampleContent
         //Adding the pearl to wishful thinking
         public static void Player_ReleaseGrasp(On.Player.orig_ReleaseGrasp orig, Player player, int grasp)
         {
-            if (ExpeditionEnhanced.ActiveContent("unl-makeawish"))
+            if (ExpeditionsEnhanced.ActiveContent("unl-makeawish"))
             {
                 if (player.grasps[grasp] != null && player.grasps[grasp].grabbed is DataPearl pearl)
                 {
@@ -92,7 +92,7 @@ namespace ExpeditionEnhanced.ExampleContent
         {
             orig.Invoke(self, upPicker);
 
-            if (ExpeditionEnhanced.ActiveContent("unl-makeawish"))
+            if (ExpeditionsEnhanced.ActiveContent("unl-makeawish"))
             {
                 if (WishfulThinking.TryGetValue(self, out _)) WishfulThinking.Remove(self);
             }
@@ -101,7 +101,7 @@ namespace ExpeditionEnhanced.ExampleContent
         //Spawn the prize spawner when in the death pit
         public static void DataPearl_Update(On.DataPearl.orig_Update orig, DataPearl self, bool eu)
         {
-            if (ExpeditionEnhanced.ActiveContent("unl-makeawish"))
+            if (ExpeditionsEnhanced.ActiveContent("unl-makeawish"))
             {
                 if (WishfulThinking.TryGetValue(self, out var g) && g != null && self.room != null)
                 {
@@ -201,7 +201,7 @@ namespace ExpeditionEnhanced.ExampleContent
         {
             orig.Invoke(player, abstractCreature, world);
 
-            if (ExpeditionEnhanced.ActiveContent("unl-stongue") && player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
+            if (ExpeditionsEnhanced.ActiveContent("unl-stongue") && player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
             {
                 player.tongue = new Player.Tongue(player, 0);
             }
@@ -210,7 +210,7 @@ namespace ExpeditionEnhanced.ExampleContent
         //A method used in various(2) places to check if the tongue can be shot
         public static bool Player_SaintTongueCheck(On.Player.orig_SaintTongueCheck orig, Player player)
         {
-            if (ExpeditionEnhanced.ActiveContent("unl-stongue") && player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
+            if (ExpeditionsEnhanced.ActiveContent("unl-stongue") && player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
             {
                 return player.Consious && player.tongue.mode == Player.Tongue.Mode.Retracted && player.bodyMode != Player.BodyModeIndex.CorridorClimb && !player.corridorDrop && player.bodyMode != Player.BodyModeIndex.ClimbIntoShortCut && player.bodyMode != Player.BodyModeIndex.WallClimb && player.bodyMode != Player.BodyModeIndex.Swimming && player.animation != Player.AnimationIndex.VineGrab && player.animation != Player.AnimationIndex.ZeroGPoleGrab;
             }
@@ -224,7 +224,7 @@ namespace ExpeditionEnhanced.ExampleContent
         {
             orig.Invoke(player);
 
-            if (ExpeditionEnhanced.ActiveContent("unl-stongue") && player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
+            if (ExpeditionsEnhanced.ActiveContent("unl-stongue") && player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
             {
                 if (!MMF.cfgOldTongue.Value && player.input[0].jmp && !player.input[1].jmp && !player.input[0].pckp && player.canJump <= 0 && player.bodyMode != Player.BodyModeIndex.Crawl && player.animation != Player.AnimationIndex.ClimbOnBeam && player.animation != Player.AnimationIndex.AntlerClimb && player.animation != Player.AnimationIndex.HangFromBeam && player.SaintTongueCheck())
                 {
@@ -245,7 +245,7 @@ namespace ExpeditionEnhanced.ExampleContent
         {
             orig.Invoke(self, ow);
 
-            if (ExpeditionEnhanced.ActiveContent("unl-stongue") && self.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
+            if (ExpeditionsEnhanced.ActiveContent("unl-stongue") && self.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
             {
                 self.ropeSegments = new PlayerGraphics.RopeSegment[20];
                 for (int k = 0; k < self.ropeSegments.Length; k++)
@@ -266,7 +266,7 @@ namespace ExpeditionEnhanced.ExampleContent
             orig.Invoke(self, sLeaser, rCam);
 
             //We dont want to add a sprite if the player is saint, since they already have a tongue
-            if (ExpeditionEnhanced.ActiveContent("unl-stongue") && self.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
+            if (ExpeditionsEnhanced.ActiveContent("unl-stongue") && self.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
             {
                 //We're adding one sprite
                 Array.Resize(ref sLeaser.sprites, sLeaser.sprites.Length + 1);
@@ -291,7 +291,7 @@ namespace ExpeditionEnhanced.ExampleContent
         {
             orig.Invoke(self, sLeaser, rCam, timeStacker, camPos);
 
-            if (ExpeditionEnhanced.ActiveContent("unl-stongue") && self.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
+            if (ExpeditionsEnhanced.ActiveContent("unl-stongue") && self.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
             {
                 //All of self is copied from the game's code
                 Vector2 vector = Vector2.Lerp(self.drawPositions[0, 1], self.drawPositions[0, 0], timeStacker);
@@ -342,7 +342,7 @@ namespace ExpeditionEnhanced.ExampleContent
         {
             orig.Invoke(self, sLeaser, rCam, palette);
 
-            if (ExpeditionEnhanced.ActiveContent("unl-stongue") && self.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint && TongueSpriteIndex.ContainsKey(self))
+            if (ExpeditionsEnhanced.ActiveContent("unl-stongue") && self.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint && TongueSpriteIndex.ContainsKey(self))
             {
                 //Relevant parts copied from the game's code
                 float a = 0.95f;
@@ -363,7 +363,7 @@ namespace ExpeditionEnhanced.ExampleContent
         {
             orig.Invoke(self);
 
-            if (ExpeditionEnhanced.ActiveContent("unl-stongue") && self.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
+            if (ExpeditionsEnhanced.ActiveContent("unl-stongue") && self.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
             {
                 //Relevant saint portion copied from the game's code
                 self.lastStretch = self.stretch;

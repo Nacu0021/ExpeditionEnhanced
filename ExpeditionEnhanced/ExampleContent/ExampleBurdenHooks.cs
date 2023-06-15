@@ -37,7 +37,7 @@ namespace ExpeditionEnhanced.ExampleContent
                 c.Emit(OpCodes.Ldloc_0);
                 c.EmitDelegate<Func<float, float>>((original) =>
                 {
-                    if (ExpeditionEnhanced.ActiveContent("bur-crippled")) original *= 0.5f;
+                    if (ExpeditionsEnhanced.ActiveContent("bur-crippled")) original *= 0.5f;
                     return original;
                 });
                 c.Emit(OpCodes.Stloc_0);
@@ -45,7 +45,7 @@ namespace ExpeditionEnhanced.ExampleContent
                 c.Emit(OpCodes.Ldloc_1);
                 c.EmitDelegate<Func<float, float>>((original) =>
                 {
-                    if (ExpeditionEnhanced.ActiveContent("bur-crippled")) original *= 0.575f;
+                    if (ExpeditionsEnhanced.ActiveContent("bur-crippled")) original *= 0.575f;
                     return original;
                 });
                 c.Emit(OpCodes.Stloc_1);
@@ -53,7 +53,7 @@ namespace ExpeditionEnhanced.ExampleContent
                 c.Emit(OpCodes.Ldloc_2);
                 c.EmitDelegate<Func<float, float>>((original) =>
                 {
-                    if (ExpeditionEnhanced.ActiveContent("bur-crippled")) original *= 0.575f;
+                    if (ExpeditionsEnhanced.ActiveContent("bur-crippled")) original *= 0.575f;
                     return original;
                 });
                 c.Emit(OpCodes.Stloc_2);
@@ -61,7 +61,7 @@ namespace ExpeditionEnhanced.ExampleContent
                 c.Emit(OpCodes.Ldloc_3);
                 c.EmitDelegate<Func<float, float>>((original) =>
                 {
-                    if (ExpeditionEnhanced.ActiveContent("bur-crippled")) original *= 0.575f;
+                    if (ExpeditionsEnhanced.ActiveContent("bur-crippled")) original *= 0.575f;
                     return original;
                 });
                 c.Emit(OpCodes.Stloc_3);
@@ -77,7 +77,7 @@ namespace ExpeditionEnhanced.ExampleContent
                 c.Emit(OpCodes.Ldarg_0);
                 c.EmitDelegate<Action<Player>>((player) =>
                 {
-                    if (ExpeditionEnhanced.ActiveContent("bur-crippled")) player.slowMovementStun = player.stun * 2;
+                    if (ExpeditionsEnhanced.ActiveContent("bur-crippled")) player.slowMovementStun = player.stun * 2;
                 });
             }
             else Plugin.logger.LogError("UH OH player terrain impact 2 burden shitted " + il);
@@ -87,13 +87,13 @@ namespace ExpeditionEnhanced.ExampleContent
         public static void RainMeter_Ctor(On.HUD.RainMeter.orig_ctor orig, RainMeter self, HUD.HUD hud, FContainer fContainer)
         {
             orig.Invoke(self, hud, fContainer);
-            if (ExpeditionEnhanced.ActiveContent("bur-confused")) self.halfTimeShown = true;
+            if (ExpeditionsEnhanced.ActiveContent("bur-confused")) self.halfTimeShown = true;
         }
 
         public static void RainMeter_Draw(On.HUD.RainMeter.orig_Draw orig, RainMeter self, float timeStacker)
         {
             orig.Invoke(self, timeStacker);
-            if (ExpeditionEnhanced.ActiveContent("bur-confused"))
+            if (ExpeditionsEnhanced.ActiveContent("bur-confused"))
             {
                 for (int i = 0; i < self.circles.Length; i++)
                 {
@@ -105,7 +105,7 @@ namespace ExpeditionEnhanced.ExampleContent
         //Make the map invisible if confused burden
         public static void Map_Draw(On.HUD.Map.orig_Draw orig, Map self, float timeStacker)
         {
-            if (ExpeditionEnhanced.ActiveContent("bur-confused")) self.visible = false;
+            if (ExpeditionsEnhanced.ActiveContent("bur-confused")) self.visible = false;
             orig.Invoke(self, timeStacker);
         }
 
