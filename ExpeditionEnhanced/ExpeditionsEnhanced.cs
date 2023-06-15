@@ -26,11 +26,18 @@ namespace ExpeditionEnhanced
         {
             foreach (CustomContent c in content)
             {
+                //Annoying
+                bool mscdotdotdot = false;
+                foreach (var mod in ModManager.InstalledMods)
+                {
+                    if (mod.id == "moreslugcats") mscdotdotdot = true;
+                }
+
                 if (c is CustomPerk perk)
                 {
                     if (customPerks.Any(x => x.ID == perk.ID)) throw new Exception("Perk with ID: " + perk.ID + " already exists! Cannot be added again!");
                     if (!perk.ID.StartsWith("unl-")) throw new Exception(perk.Name + " perk's ID doesn't start with \"unl-\"");
-                    if (!ModManager.MSC && perk.MSCDependant)
+                    if (!mscdotdotdot && perk.MSCDependant)
                     {
                         Plugin.logger.LogMessage(perk.Name + " perk is dependant on MSC, but MSC is not enabled.");
                         continue;
@@ -41,7 +48,7 @@ namespace ExpeditionEnhanced
                 {
                     if (customBurdens.Any(x => x.ID == burden.ID)) throw new Exception("Burden with ID: " + burden.ID + " already exists! Cannot be added again!");
                     if (!burden.ID.StartsWith("bur-")) throw new Exception(burden.Name + " burden's ID doesn't start with \"bur-\"");
-                    if (!ModManager.MSC && burden.MSCDependant)
+                    if (!mscdotdotdot && burden.MSCDependant)
                     {
                         Plugin.logger.LogMessage(burden.Name + " burden is dependant on MSC, but MSC is not enabled.");
                         continue;
@@ -613,14 +620,14 @@ namespace ExpeditionEnhanced
 
             if (maxPerkPages > 1)
             {
-                SymbolButton perkLeft = new SymbolButton(self, self.pages[0], "Big_Menu_Arrow", "CUSTOMPERKPAGE_LEFT", new Vector2(403f, 407f));
+                SymbolButton perkLeft = new SymbolButton(self, self.pages[0], "Big_Menu_Arrow", "CUSTOMPERKPAGE_LEFT", new Vector2(403f, ModManager.MSC ? 407f : 407f + 75f));
                 perkLeft.symbolSprite.rotation = 270f;
                 perkLeft.size = new Vector2(30f, 30f);
                 perkLeft.roundedRect.size = perkLeft.size;
                 perkLeft.symbolSprite.scale = 0.5f;
                 self.pages[0].subObjects.Add(perkLeft);
 
-                SymbolButton perkRight = new SymbolButton(self, self.pages[0], "Big_Menu_Arrow", "CUSTOMPERKPAGE_RIGHT", new Vector2(937f, 407f));
+                SymbolButton perkRight = new SymbolButton(self, self.pages[0], "Big_Menu_Arrow", "CUSTOMPERKPAGE_RIGHT", new Vector2(937f, ModManager.MSC ? 407f : 407f + 75f));
                 perkRight.symbolSprite.rotation = 90f;
                 perkRight.size = new Vector2(30f, 30f);
                 perkRight.roundedRect.size = perkRight.size;
@@ -661,7 +668,7 @@ namespace ExpeditionEnhanced
 
             for (int i = emescee + currentPerkPage * 8; i < Mathf.Min(emescee + currentPerkPage * 8 + 8, self.perkButtons.Count); i++)
             {
-                self.perkButtons[i].pos = new(450f + 60f * (i - emescee - currentPerkPage * 8), 610f - 75f * 2 - 63f);
+                self.perkButtons[i].pos = new(450f + 60f * (i - emescee - currentPerkPage * 8), 610f - 75f * (ModManager.MSC ?  2 : 1) - 63f);
                 self.perkButtons[i].lastPos = self.perkButtons[i].pos;
             }
         }
@@ -834,15 +841,15 @@ namespace ExpeditionEnhanced
                     var grass = self.pages[0].subObjects.FirstOrDefault(x => x is BigSimpleButton b && b.signalText == customBurdens[i - gruh].ID) as BigSimpleButton;
                     if (grass != null && (grass.Selected || grass.IsMouseOverMe))
                     {
-                        self.perkNameLabel.text = self.burdenNames[i];
-                        self.perkDescLabel.text = self.burdenDescriptions[i];
+                        self.perkNameLabel.text = self.burdenNames[i + (ModManager.MSC ? 0 : 1)];
+                        self.perkDescLabel.text = self.burdenDescriptions[i + (ModManager.MSC ? 0 : 1)];
                         burdenMode = true;
                     }
                 }
                 if (self.blindedBurden.Selected || self.blindedBurden.IsMouseOverMe ||
                     self.doomedBurden.Selected || self.doomedBurden.IsMouseOverMe ||
                     self.huntedBurden.Selected || self.huntedBurden.IsMouseOverMe ||
-                    self.pursuedBurden.Selected || self.pursuedBurden.IsMouseOverMe) burdenMode = true;
+                    (self.pursuedBurden != null && self.pursuedBurden.Selected) || (self.pursuedBurden != null && self.pursuedBurden.IsMouseOverMe)) burdenMode = true;
             }
         }
 

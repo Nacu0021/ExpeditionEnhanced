@@ -11,6 +11,7 @@ namespace ExpeditionEnhanced.ExampleContent
         public override string SpriteName => "Kill_Slugcat";
         public override Color Color => new(0.372f, 0.752f, 0.098f); //Saint colore :))
         public override bool AlwaysUnlocked => true;
+        public override bool MSCDependant => true;
         public override CustomPerkType PerkType => CustomPerkType.Custom;
     }
 }
