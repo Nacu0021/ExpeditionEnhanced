@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 
-
 namespace ExpeditionEnhanced.ExampleContent
 {
     public class Confused : CustomBurden

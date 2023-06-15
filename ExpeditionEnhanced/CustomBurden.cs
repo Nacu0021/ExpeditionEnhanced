@@ -1,9 +1,4 @@
-﻿using UnityEngine;
-using RWCustom;
-using MoreSlugcats;
-using System;
-
-namespace ExpeditionEnhanced
+﻿namespace ExpeditionEnhanced
 {
     public abstract class CustomBurden : CustomContent
     {
