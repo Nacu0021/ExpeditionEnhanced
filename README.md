@@ -3,7 +3,7 @@
 
 A content mod and a framework for the Expedition gamemode in Rain World.
 
-![adsfuiioadfiudfa](https://github.com/Nacu0021/ExpeditionEnhanced/assets/67332756/f38f6fa4-0689-4deb-a704-c94edcd0bdbf)
+![adsfuiioadfiudfa](https://github.com/Nacu0021/ExpeditionEnhanced/assets/67332756/7bb9bf20-a922-4380-a61d-409de498e453)
 
 
 On it's own the mod adds 6 new perks, and 2 new burdens. All were designed to be fun and a good example of how to add your own stuff!
