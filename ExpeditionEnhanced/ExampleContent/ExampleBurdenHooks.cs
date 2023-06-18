@@ -114,7 +114,7 @@ namespace ExpeditionEnhanced.ExampleContent
         {
             orig.Invoke(self);
 
-            if (self.room != null && self.input[0].mp && !self.input[1].mp) self.room.PlaySound(SoundID.Swollen_Water_Nut_Terrain_Impact, self.firstChunk);
+            if (ExpeditionsEnhanced.ActiveContent("bur-confused") && self.room != null && self.input[0].mp && !self.input[1].mp) self.room.PlaySound(SoundID.Swollen_Water_Nut_Terrain_Impact, self.firstChunk);
         }
     }
 }

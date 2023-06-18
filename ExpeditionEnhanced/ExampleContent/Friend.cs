@@ -56,7 +56,7 @@ namespace ExpeditionEnhanced.ExampleContent
             AbstractCreature player = room.game.Players[0];
             if (player != null)
             {
-                AbstractCreature startCreature = new AbstractCreature(room.world, StaticWorld.GetCreatureTemplate(friendType), null, position, room.game.GetNewID());
+                AbstractCreature startCreature = new AbstractCreature(room.world, StaticWorld.GetCreatureTemplate(friendType), null, player.pos, room.game.GetNewID());
                 room.abstractRoom.AddEntity(startCreature);
                 //Making the liz befriend the player
                 startCreature.state.socialMemory.GetOrInitiateRelationship(player.ID).InfluenceLike(10f);
