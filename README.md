@@ -73,8 +73,10 @@ public class Confusedd : CustomBurden
     //The % amount of how much the burden increases the expedition's score.
     public override float ScoreMultiplier => 40f;
     
-    //The rest is explained above, in the Custom Perks section
+    //The ID with which you'll be referring to the burden. Needs to start with "bur-"
     public override string ID => "bur-confusedd";
+    
+    //The rest is explained above, in the Custom Perks section
     public override string Name => "CONFUSED";
     public override string ManualDescription => "Slugcat hit its head on a rock earlier, now its memory seems to be working funny. What time is it again?";
     public override Color Color => new Color(1f, 0.949f, 0.25f);
