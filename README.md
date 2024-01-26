@@ -3,10 +3,10 @@
 
 A content mod and a framework for the Expedition gamemode in Rain World.
 
-![adsfuiioadfiudfa](https://github.com/Nacu0021/ExpeditionEnhanced/assets/67332756/7bb9bf20-a922-4380-a61d-409de498e453)
+![thenew](https://github.com/Nacu0021/ExpeditionEnhanced/assets/67332756/05fbdd2c-2d67-4cbb-a63b-5a2a77497b41)
 
 
-On it's own the mod adds 6 new perks, and 2 new burdens. All were designed to be fun and a good example of how to add your own stuff!
+On it's own the mod adds 8 new perks, and 4 new burdens. All were designed to be fun and a good example of how to add your own stuff!
 
 ## Adding custom content
 Some basic C# and Rain World modding knowledge is required, and I'll assume it's known.  
@@ -59,8 +59,10 @@ If used, it's necessary to override the `StartItem` or `StartCreature` propertie
 You can override the `OnStart` method to write custom logic. [Like in the example Friend perk.](ExpeditionEnhanced/ExampleContent/Friend.cs)
 + OnKill - Does something whenever a creature is killed.  
 You can override the `OnKill` method to write custom logic. [Like in the example Leeching perk](ExpeditionEnhanced/ExampleContent/Leeching.cs)
++ OnAttack - Does something whenever a creature is damaged, or a weapon flies near it. 
+You can override the `OnAttack` method to write custom logic. [Like in the example Explosive Damage perk](ExpeditionEnhanced/ExampleContent/ExplosiveDamage.cs)
 + Custom - Entirely custom logic. Your friend here will be using the `ExpeditionsEnhanced.ActiveContent` method.  
-The simplest example of this would be the [Explosive Damage perk](ExpeditionEnhanced/ExampleContent/ExplosiveDamage.cs), on its own the perk does nothing, but [you can write hooks checking whether the perk is active in other places.](https://github.com/Nacu0021/ExpeditionEnhanced/blob/master/ExpeditionEnhanced/ExampleContent/ExamplePerkHooks.cs??plain=1#L34)  
+On its own the perk does nothing, but [you can write hooks checking whether the perk is active in other places.](https://github.com/Nacu0021/ExpeditionEnhanced/blob/master/ExpeditionEnhanced/ExampleContent/ExamplePerkHooks.cs??plain=1#L34)  
 For a more complex example showcasing how to add exclusive slugcat features for every slugcat, [look at how the example SaintTongue perk does it](https://github.com/Nacu0021/ExpeditionEnhanced/blob/master/ExpeditionEnhanced/ExampleContent/ExamplePerkHooks.cs??plain=1#L200).
 
 note: It's possible to use custom logic for every type of perk, the two first perk types just do some of the dirty work for you.
