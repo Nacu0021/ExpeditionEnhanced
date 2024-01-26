@@ -1,25 +1,28 @@
 ﻿using Expedition;
-using UnityEngine;
-using RWCustom;
-using System.Collections.Generic;
-using System;
+using ExpeditionEnhanced.ExampleContent;
 using Menu;
-using System.Linq;
+using Menu.Remix.MixedUI;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using Menu.Remix.MixedUI;
+using RWCustom;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
+using UnityEngine;
 
 namespace ExpeditionEnhanced
 {
     public class ExpeditionsEnhanced
     {
-        public static List<CustomPerk> customPerks = new List<CustomPerk>();
-        public static List<CustomBurden> customBurdens = new List<CustomBurden>();
+        public static List<CustomPerk> customPerks = [];
+        public static List<CustomBurden> customBurdens = [];
         public static int maxPerkPages = 0;
         public static int currentPerkPage = 0;
         public static int maxBurdenPages = 0;
         public static int currentBurdenPage = 0;
+        public static int maxPPages = -1;
+        public static int maxBPages = -1;
         public static bool burdenMode = false;
 
         public static void RegisterExpeditionContent(params CustomContent[] content)
@@ -28,7 +31,7 @@ namespace ExpeditionEnhanced
             {
                 //Annoying
                 bool mscdotdotdot = false;
-                foreach (var mod in ModManager.InstalledMods)
+                foreach (var mod in ModManager.ActiveMods)
                 {
                     if (mod.id == "moreslugcats") mscdotdotdot = true;
                 }
@@ -58,22 +61,25 @@ namespace ExpeditionEnhanced
             }
         }
 
-        public static bool ActiveContent(string nameOrID)
+        public static bool ActiveContent(string ID)
         {
             if (ModManager.Expedition && Custom.rainWorld.ExpeditionMode)
             {
-                if (ExpeditionGame.activeUnlocks.Contains(nameOrID)) return true;
-                CustomContent perky = customPerks.FirstOrDefault(x => x.Name == nameOrID);
-                if (perky == null) perky = customBurdens.FirstOrDefault(x => x.Name == nameOrID);
-                if (perky != null && ExpeditionGame.activeUnlocks.Contains(perky.ID)) return true;
+                if (ExpeditionGame.activeUnlocks.Contains(ID)) return true;
+
+                // I dont think anyone would use this, it's just unnecessary checks
+                //CustomContent perky = customPerks.FirstOrDefault(x => x.Name == nameOrID);
+                //if (perky == null) perky = customBurdens.FirstOrDefault(x => x.Name == nameOrID);
+                //if (perky != null && ExpeditionGame.activeUnlocks.Contains(perky.ID)) return true; 
             }
             return false;
         }
 
         public static void Apply()
         {
-            //OnKill and OnStart functionality
+            //OnKill, OnHit, and OnStart functionality
             On.SocialEventRecognizer.Killing += SocialEventRecognizer_Killing;
+            On.SocialEventRecognizer.WeaponAttack += SocialEventRecognizer_WeaponAttack;
             IL.Room.Loaded += Room_Loaded;
 
             //Making always unlocked perks always unlocked :thumbsup: (burdens also)
@@ -94,6 +100,7 @@ namespace ExpeditionEnhanced
             On.Expedition.ExpeditionProgression.BurdenScoreMultiplier += ExpeditionProgression_BurdenScoreMultiplier;
             On.Menu.UnlockDialog.UpdateBurdens += UnlockDialog_UpdateBurdens;
             On.Menu.UnlockDialog.SetUpBurdenDescriptions += UnlockDialog_SetUpBurdenDescriptions;
+            On.Expedition.ExpeditionGame.SetUpBurdenTrackers += ExpeditionGame_SetUpBurdenTrackers;
             
             //Both
             On.Expedition.ExpeditionProgression.CountUnlockables += ExpeditionProgression_CountUnlockables;
@@ -109,6 +116,59 @@ namespace ExpeditionEnhanced
             IL.Menu.UnlockDialog.ctor += UnlockDialog_ctorIL;
             On.Menu.UnlockDialog.GrafUpdate += UnlockDialog_GrafUpdate;
             On.Menu.UnlockDialog.Update += UnlockDialog_Update;
+
+            //Adding custom quest icons
+            On.Menu.ProgressionPage.ctor += ProgressionPage_ctor;
+        }
+
+        public static void ProgressionPage_ctor(On.Menu.ProgressionPage.orig_ctor orig, ProgressionPage self, Menu.Menu menu, MenuObject owner, Vector2 pos)
+        {
+            orig.Invoke(self, menu, owner, pos);
+
+            // Pretty and hardcoded
+            int s = self.questButtons.Length;
+            Array.Resize(ref self.questButtons, s + (ModManager.MSC ? 6 : 5));
+            Vector2 size = new(50f, 50f);
+            if (ModManager.MSC)
+            {
+                self.questButtons[s] = new QuestButton(menu, self, "", "qst1crippled", new Vector2(180f, 240f), size, "qst1crippled");
+                self.questButtons[s].tick.SetElementByName("Symbol_Crippled");
+                self.questButtons[s + 1] = new QuestButton(menu, self, "", "qst2confused", new Vector2(1140f, 240f), size, "qst2confused");
+                self.questButtons[s + 1].tick.SetElementByName("Symbol_Confused");
+                self.questButtons[s + 2] = new QuestButton(menu, self, "", "qst3marked", new Vector2(180f, 180f), size, "qst3marked");
+                self.questButtons[s + 2].tick.SetElementByName("Symbol_Spikes");
+                self.questButtons[s + 3] = new QuestButton(menu, self, "", "qst4volatile", new Vector2(1140f, 180f), size, "qst4volatile");
+                self.questButtons[s + 3].tick.SetElementByName("Symbol_Volatile");
+                self.questButtons[s + 4] = new QuestButton(menu, self, "", "qst5silver", new Vector2(180f, 120f), size, "qst5silver");
+                self.questButtons[s + 4].tick.SetElementByName("Symbol_Silver");
+                self.questButtons[s + 5] = new QuestButton(menu, self, "", "qst6gold", new Vector2(1140f, 120f), size, "qst6gold");
+                self.questButtons[s + 5].tick.SetElementByName("Symbol_Golden");
+                
+            }
+            else
+            {
+                // We dont show the silver quest here, cause theres no Pursued
+                self.questButtons[s] = new QuestButton(menu, self, "", "qst1crippled", new Vector2(180f, 255f), size, "qst1crippled");
+                self.questButtons[s].tick.SetElementByName("Symbol_Crippled");
+                self.questButtons[s + 1] = new QuestButton(menu, self, "", "qst2confused", new Vector2(1140f, 255f), size, "qst2confused");
+                self.questButtons[s + 1].tick.SetElementByName("Symbol_Confused");
+                self.questButtons[s + 2] = new QuestButton(menu, self, "", "qst3marked", new Vector2(180f, 195f), size, "qst3marked");
+                self.questButtons[s + 2].tick.SetElementByName("Symbol_Spikes");
+                self.questButtons[s + 3] = new QuestButton(menu, self, "", "qst4volatile", new Vector2(1140f, 195f), size, "qst4volatile");
+                self.questButtons[s + 3].tick.SetElementByName("Symbol_Volatile");
+                self.questButtons[s + 4] = new QuestButton(menu, self, "", "qst6gold", new Vector2(660f, 105f), size, "qst6gold");
+                self.questButtons[s + 4].tick.SetElementByName("Symbol_Golden");
+            }
+
+            for (int i = 0; i < (ModManager.MSC ? 6 : 5); i++)
+            {
+                if (ExpeditionData.completedQuests.Contains(self.questButtons[s + i].questKey))
+                {
+                    self.questButtons[s + i].tick.SetElementByName("tick");
+                }
+                self.questButtons[s + i].tick.alpha = 1f;
+                self.subObjects.Add(self.questButtons[s + i]);
+            }
         }
 
         //Call the OnStart function of all custom perks in the correct place
@@ -164,6 +224,23 @@ namespace ExpeditionEnhanced
             }
         }
 
+        //Call the OnHit of all burdens that use it
+        public static void SocialEventRecognizer_WeaponAttack(On.SocialEventRecognizer.orig_WeaponAttack orig, SocialEventRecognizer self, PhysicalObject weapon, Creature thrower, Creature victim, bool hit)
+        {
+            orig.Invoke(self, weapon, thrower, victim, hit);
+            if (ModManager.Expedition && self.room.game.rainWorld.ExpeditionMode && thrower is Player player && customPerks.Count > 0)
+            {
+                for (int i = 0; i < ExpeditionGame.activeUnlocks.Count; i++)
+                {
+                    CustomPerk perk = customPerks.FirstOrDefault(
+                        x => x.ID == ExpeditionGame.activeUnlocks[i] &&
+                        x.PerkType == CustomPerk.CustomPerkType.OnAttack);
+
+                    perk?.OnAttack(self, weapon, player, victim, hit);
+                }
+            }
+        }
+
         //Loading wanted (always active) custom perks 
         public static void ExpeditionCoreFile_FromString(On.Expedition.ExpeditionCoreFile.orig_FromString orig, ExpeditionCoreFile self, string saveString)
         {
@@ -185,16 +262,40 @@ namespace ExpeditionEnhanced
                 }
             }
 
-            //This just like fixes bs dont worry about it
-            foreach (KeyValuePair<SlugcatStats.Name, List<string>> keyValuePair2 in ExpeditionGame.allUnlocks)
+            if (ExpeditionProgression.perkGroups.Count > 0)
             {
-                balls:
-                foreach (var lue in keyValuePair2.Value)
+                //This just like fixes bs dont worry about it
+                List<string> allContent = [];
+                foreach (var kvp in ExpeditionProgression.perkGroups)
                 {
-                    if (!ExpeditionData.unlockables.Contains(lue))
+                    allContent.AddRange(ExpeditionProgression.perkGroups[kvp.Key]);
+                }
+                foreach (var kvp in ExpeditionProgression.burdenGroups)
+                {
+                    allContent.AddRange(ExpeditionProgression.burdenGroups[kvp.Key]);
+                }
+                //List<string> allContent = [.. ExpeditionProgression.perkGroups["expedition"],
+                //    .. ExpeditionProgression.perkGroups["expeditionenhanced"],
+                //    .. ExpeditionProgression.burdenGroups["expedition"],
+                //    .. ExpeditionProgression.burdenGroups["expeditionenhanced"]];
+                //
+                //if (ModManager.MSC)
+                //{
+                //    allContent.AddRange(ExpeditionProgression.perkGroups["moreslugcats"]);
+                //    allContent.AddRange(ExpeditionProgression.burdenGroups["moreslugcats"]);
+                //}
+
+                foreach (KeyValuePair<SlugcatStats.Name, List<string>> keyValuePair2 in ExpeditionGame.allUnlocks)
+                {
+                balls:
+                    foreach (var lue in keyValuePair2.Value)
                     {
-                        keyValuePair2.Value.Remove(lue);
-                        goto balls;
+                        if ((lue.StartsWith("unl") || lue.StartsWith("bur")) && !allContent.Contains(lue))
+                        {
+                            ExpeditionGame.allUnlocks[keyValuePair2.Key].Remove(lue);
+                            Plugin.logger.LogMessage("MISSING UNLOCK, REMOVING " + lue + " FROM " + keyValuePair2.Key);
+                            goto balls;
+                        }
                     }
                 }
             }
@@ -280,7 +381,7 @@ namespace ExpeditionEnhanced
             {
                 foreach (var perk in customPerks)
                 {
-                    if (key == perk.ID) return perk.ManualDescription;
+                    if (key == perk.ID && ExpeditionData.unlockables.Contains(key)) return perk.ManualDescription;
                 }
             }
 
@@ -347,7 +448,7 @@ namespace ExpeditionEnhanced
             {
                 foreach (var aaronburr in customBurdens)
                 {
-                    if (key == aaronburr.ID) return aaronburr.ManualDescription;
+                    if (key == aaronburr.ID && ExpeditionData.unlockables.Contains(key)) return aaronburr.ManualDescription;
                 }
             }
 
@@ -394,6 +495,13 @@ namespace ExpeditionEnhanced
             }
         }
 
+        public static void ExpeditionGame_SetUpBurdenTrackers(On.Expedition.ExpeditionGame.orig_SetUpBurdenTrackers orig, RainWorldGame game)
+        {
+            orig.Invoke(game);
+
+            if (game != null && ActiveContent("bur-marked")) ExpeditionGame.burdenTrackers.Add(new ExampleBurdenHooks.SpikeEventTracker(game));
+        }
+
         //Below is logic for adding new pages to the manual, also rewriting the way base expedition does this a bit
         public static void ExpeditionManualDialog_ctor(On.Menu.ExpeditionManualDialog.orig_ctor orig, ExpeditionManualDialog self, ProcessManager manager, Dictionary<string, int> topics)
         {
@@ -411,10 +519,14 @@ namespace ExpeditionEnhanced
             if (topics.ContainsKey("perks"))
             {
                 topics["perks"] += extraPPageNum;
+                if (maxPPages == -1) maxPPages = topics["perks"];
+                if (topics["perks"] > maxPPages) topics["perks"] = maxPPages;
             }
             if (topics.ContainsKey("burdens"))
             {
                 topics["burdens"] += extraBPageNum;
+                if (maxBPages == -1) maxBPages = topics["burdens"];
+                if (topics["burdens"] > maxBPages) topics["burdens"] = maxBPages;
             }
 
             orig.Invoke(self, manager, topics);

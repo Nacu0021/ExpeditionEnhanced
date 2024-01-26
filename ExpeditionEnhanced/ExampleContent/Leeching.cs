@@ -7,25 +7,28 @@ namespace ExpeditionEnhanced.ExampleContent
     {
         public override string ID => "unl-leeching";
         public override string Name => "Leeching";
-        public override string Description => "Gain food upon killing creatures.";
+        public override string Description => "Gain food upon killing creatures";
         public override string ManualDescription => "When killing a creature, gain a quarter pip of food. Bigger creatures killed yield more food!";
         public override string SpriteName => "Kill_Leech";
-        public override Color Color => Color.red;
+        public override Color Color => new Color(0.68235296f, 0.15686275f, 0.11764706f);
         public override bool AlwaysUnlocked => true;
         public override CustomPerkType PerkType => CustomPerkType.OnKill; //This means the OnKill function triggers whenever a player kills something
 
         //You need to override this if you want the OnKill perk type to do anything.
         public override void OnKill(SocialEventRecognizer socialEventRecognizer, Player player, Creature victim)
         {
+            if (player == null || victim == null || player.room == null || victim.room == null) return;
+
             //Logic for giving the player quarter food pips based on the creature's weight.
             if (!victim.Template.smallCreature) 
             {
-                int num = Mathf.Clamp(Mathf.CeilToInt(victim.TotalMass), 1, 8);
+                int num = Mathf.Clamp(Mathf.CeilToInt(victim.TotalMass * 2f), 1, 16);
                 for (int i = 0; i < num; i++)
                 {
                     //player.AddQuarterFood(); //If you didnt want any of the cosmetic stuff this is essentially the same
 
-                    player.room.AddObject(new LeechParticle(player, victim));
+                    if (player.room == victim.room) player.room.AddObject(new LeechParticle(player, victim));
+                    else player.AddQuarterFood();
                 }
             }
         }

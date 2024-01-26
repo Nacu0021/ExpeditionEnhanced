@@ -35,6 +35,9 @@
     <Reference Include="BepInEx">
       <HintPath>..\..\..\..\SteamLibrary\steamapps\common\Rain World\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
+    <Reference Include="DevConsole">
+      <HintPath>..\..\..\..\SteamLibrary\steamapps\workshop\content\312520\2920528044\plugins\DevConsole.dll</HintPath>
+    </Reference>
     <Reference Include="HOOKS-Assembly-CSharp">
       <HintPath>..\..\..\h\HOOKS-Assembly-CSharp.dll</HintPath>
     </Reference>
@@ -73,10 +76,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Console.cs" />
     <Compile Include="CustomBurden.cs" />
     <Compile Include="CustomContent.cs" />
     <Compile Include="CustomPerk.cs" />
+    <Compile Include="ExampleContent\CrippledMechanics.cs" />
+    <Compile Include="ExampleContent\Gourmet.cs" />
     <Compile Include="ExampleContent\BlueFruit.cs" />
+    <Compile Include="ExampleContent\GroundSpikes.cs" />
+    <Compile Include="ExampleContent\Volatile.cs" />
+    <Compile Include="ExampleContent\ThunderGod.cs" />
+    <Compile Include="ExampleContent\Marked.cs" />
     <Compile Include="ExampleContent\ExampleBurdenHooks.cs" />
     <Compile Include="ExampleContent\ExamplePerkHooks.cs" />
     <Compile Include="ExampleContent\ExplosiveDamage.cs" />

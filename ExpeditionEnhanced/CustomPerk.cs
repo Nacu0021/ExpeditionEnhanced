@@ -35,6 +35,7 @@ namespace ExpeditionEnhanced
             public static readonly CustomPerkType Custom = new CustomPerkType("Custom", true);
             public static readonly CustomPerkType OnStart = new CustomPerkType("OnStart", true);
             public static readonly CustomPerkType OnKill = new CustomPerkType("OnKill", true);
+            public static readonly CustomPerkType OnAttack = new CustomPerkType("OnAttack", true);
 
             public CustomPerkType(string value, bool register = false) : base(value, register) { }
         }
@@ -65,7 +66,12 @@ namespace ExpeditionEnhanced
         {
         }
 
-        /// <summary>Some object types require their own APO's else they dont work, this method fetches those.</summary>
+        /// <summary>Called whenever a player hits something. Meant to be overridden.</summary>
+        public virtual void OnAttack(SocialEventRecognizer socialEventRecognizer, PhysicalObject weapon, Player thrower, Creature victim, bool actuallyHit)
+        {
+        }
+
+        /// <summary>Some object types require their own AbstractPhysicalObjects else they dont work, this method fetches those.</summary>
         public static AbstractPhysicalObject GetCorrectAPO(ItemType type, Room room, WorldCoordinate position)
         {
             AbstractPhysicalObject obj = new AbstractPhysicalObject(room.world, type, null, position, room.game.GetNewID());

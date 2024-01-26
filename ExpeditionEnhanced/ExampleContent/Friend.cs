@@ -1,6 +1,8 @@
 ﻿using Expedition;
 using UnityEngine;
 using MoreSlugcats;
+using CreatureType = CreatureTemplate.Type;
+using MSCCreatureType = MoreSlugcats.MoreSlugcatsEnums.CreatureTemplateType;
 
 namespace ExpeditionEnhanced.ExampleContent
 {
@@ -11,52 +13,55 @@ namespace ExpeditionEnhanced.ExampleContent
         public override string Description => "Start the expedition with a lizard friend!";
         public override string ManualDescription => "Start the expedition with a friendly lizard, the type of lizard is different for all base slugcats.";
         public override string SpriteName => "FriendA";
-        public override Color Color => Color.magenta;
+        public override Color Color => new Color (1f, 0.529f, 0.913f);
         public override bool AlwaysUnlocked => true;
         public override CustomPerkType PerkType => CustomPerkType.OnStart;
-        public override CreatureTemplate.Type StartCreature => CreatureTemplate.Type.PinkLizard;
+        public override CreatureType StartCreature => CreatureType.PinkLizard;
 
         //Writing a custom OnStart. The spawning creature code is stolen from the original OnStart method, and then its added upon.
         public override void OnStart(Room room, WorldCoordinate position)
         {
+            if (room.world.region == null) return;
+
             //Choosing a lizard type based on the slugcat youre playing (with default being the StartCreature which is PinkLizard)
-            CreatureTemplate.Type friendType = StartCreature;
+            string region = room.world.region.name.ToLowerInvariant();
+            bool water = region == "sl" || region == "ms" || region == "ds";
+            bool air = region == "uw" || region == "cc" || region == "si"|| region == "lc";
+            CreatureType friendType = air ? CreatureType.WhiteLizard : water ? CreatureType.Salamander : StartCreature;
+
+            friendType = StartCreature;
             if (ExpeditionData.slugcatPlayer == SlugcatStats.Name.Red)
             {
-                friendType = CreatureTemplate.Type.CyanLizard;
-            }
-            else if (ExpeditionData.slugcatPlayer == SlugcatStats.Name.Yellow)
-            {
-                friendType = CreatureTemplate.Type.BlueLizard;
+                friendType = CreatureType.CyanLizard;
             }
             else if (ExpeditionData.slugcatPlayer == SlugcatStats.Name.Night)
             {
-                friendType = CreatureTemplate.Type.BlackLizard;
+                friendType = air ? CreatureType.WhiteLizard : water ? CreatureType.Salamander : CreatureType.BlackLizard;
             }
             else if (ExpeditionData.slugcatPlayer == MoreSlugcatsEnums.SlugcatStatsName.Rivulet)
             {
-                friendType = MoreSlugcatsEnums.CreatureTemplateType.EelLizard;
+                friendType = air ? CreatureType.CyanLizard : MSCCreatureType.EelLizard;
             }
             else if (ExpeditionData.slugcatPlayer == MoreSlugcatsEnums.SlugcatStatsName.Saint)
             {
-                friendType = MoreSlugcatsEnums.CreatureTemplateType.ZoopLizard;
+                friendType = MSCCreatureType.ZoopLizard;
             }
             else if (ExpeditionData.slugcatPlayer == MoreSlugcatsEnums.SlugcatStatsName.Gourmand)
             {
-                friendType = MoreSlugcatsEnums.CreatureTemplateType.SpitLizard;
+                friendType = MSCCreatureType.SpitLizard;
             }
             else if (ExpeditionData.slugcatPlayer == MoreSlugcatsEnums.SlugcatStatsName.Spear)
             {
-                friendType = CreatureTemplate.Type.WhiteLizard;
+                friendType = CreatureType.CyanLizard;
             }
             else if (ExpeditionData.slugcatPlayer == MoreSlugcatsEnums.SlugcatStatsName.Artificer)
             {
-                friendType = CreatureTemplate.Type.RedLizard;
+                friendType = CreatureType.RedLizard;
             }
             AbstractCreature player = room.game.Players[0];
             if (player != null)
             {
-                AbstractCreature startCreature = new AbstractCreature(room.world, StaticWorld.GetCreatureTemplate(friendType), null, player.pos, room.game.GetNewID());
+                AbstractCreature startCreature = new AbstractCreature(room.world, StaticWorld.GetCreatureTemplate(friendType), null, position, room.game.GetNewID());
                 room.abstractRoom.AddEntity(startCreature);
                 //Making the liz befriend the player
                 startCreature.state.socialMemory.GetOrInitiateRelationship(player.ID).InfluenceLike(10f);

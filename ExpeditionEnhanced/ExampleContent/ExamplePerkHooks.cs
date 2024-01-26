@@ -4,6 +4,8 @@ using MoreSlugcats;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using MonoMod.Cil;
+using Mono.Cecil.Cil;
 
 namespace ExpeditionEnhanced.ExampleContent
 {
@@ -11,8 +13,9 @@ namespace ExpeditionEnhanced.ExampleContent
     {
         public static void Apply()
         {
-            //Explosive damage perk
-            On.SocialEventRecognizer.WeaponAttack += SocialEventRecognizer_WeaponAttack;
+            //Thunder god perk
+            IL.Player.ThrowObject += Player_ThrowObject;
+            On.Player.GrabUpdate += Player_GrabUpdate;
 
             //Make a wish perk
             On.Player.ReleaseGrasp += Player_ReleaseGrasp;
@@ -28,44 +31,335 @@ namespace ExpeditionEnhanced.ExampleContent
             On.PlayerGraphics.DrawSprites += PlayerGraphics_DrawSprites;
             On.PlayerGraphics.ApplyPalette += PlayerGraphics_ApplyPalette;
             On.PlayerGraphics.MSCUpdate += PlayerGraphics_MSCUpdate;
+
+            //Ground Spikes
+            On.Player.Jump += Player_Jump;
         }
 
-        //I dont know if this is fun and/or balanced
-        public static void SocialEventRecognizer_WeaponAttack(On.SocialEventRecognizer.orig_WeaponAttack orig, SocialEventRecognizer self, PhysicalObject weapon, Creature thrower, Creature victim, bool hit)
+        public static void Player_Jump(On.Player.orig_Jump orig, Player self)
         {
-            orig.Invoke(self, weapon, thrower, victim, hit);
+            int j = self.superLaunchJump;
+            orig.Invoke(self);
 
-            if (ExpeditionsEnhanced.ActiveContent("unl-boomdamage") && weapon != null && thrower != null && victim != null && thrower is Player && hit)
+            if (ExpeditionsEnhanced.ActiveContent("unl-spikes") && (self.flipFromSlide || (j == 20 && self.superLaunchJump == 0) || self.animation == Player.AnimationIndex.RocketJump))
             {
-                //Make sure its an actual hit (no phantom explosions), and that bombs dont create splosions
-                if (weapon is not ScavengerBomb and not SingularityBomb)
+                var spikePos = SharedPhysics.RayTraceTilesForTerrainReturnFirstSolid(self.room, self.bodyChunks[0].lastPos, self.bodyChunks[0].lastPos - new Vector2(0f, 1000f));
+                if (spikePos.HasValue)
                 {
-                    //Strength based on the weapon type
-                    float factor = 2f;
-                    if (weapon is Spear s)
+                    Vector2 spikePosPos = self.room.MiddleOfTile(spikePos.Value) - new Vector2(0f, 10f);
+                    self.room.AddObject(new ExampleBurdenHooks.GroundSpike(spikePosPos, UnityEngine.Random.Range(7, 12), self.mainBodyChunk.pos + Custom.DirVec(self.room.MiddleOfTile(spikePos.Value), self.mainBodyChunk.pos) * new Vector2(-1f, 1f) * UnityEngine.Random.Range(80, 180))
                     {
-                        factor = 2.4f;
-                        if (s is ExplosiveSpear || s is ElectricSpear)
-                        {
-                            factor = 3f;
-                        }
-                        factor *= s.spearDamageBonus;
-                    }
-                    if (weapon is Bullet) factor = 0.2f;
-
-                    //Stolen code from ScavengerBomb.Explode with tweaked values
-                    Vector2 pos = weapon.firstChunk.pos;
-                    self.room.AddObject(new Explosion(self.room, weapon, pos, 7, 30f * factor, factor * 2.5f, 0.15f * factor, 20f * factor, 0f, thrower, 0.3f * factor, 10f * factor, 0.1f * factor));
-                    self.room.AddObject(new Explosion.ExplosionLight(pos, 30f * factor, 1f, 3, Color.white));
-                    self.room.AddObject(new ExplosionSpikes(self.room, pos, (int)(3 * factor), 30f * factor, 9f, 7f, 10f * factor, new Color(0.01f, 0.01f, 0.01f)));
-                    self.room.AddObject(new ShockWave(pos, 30f * factor, 0.04f * factor, 5, false));
-
-                    for (int j = 0; j < 5; j++)
+                        ignorePlayer = true,
+                        killTagHolder = self.abstractCreature
+                    });
+                    self.room.AddObject(new ExampleBurdenHooks.GroundSpike(spikePosPos, UnityEngine.Random.Range(7, 12), self.mainBodyChunk.pos + Custom.DirVec(self.room.MiddleOfTile(spikePos.Value), self.mainBodyChunk.pos) * UnityEngine.Random.Range(60, 140))
                     {
-                        self.room.AddObject(new Spark(pos, Custom.RNV() * Mathf.Lerp(5f, 10f, UnityEngine.Random.value) * factor + Custom.RNV() * 10f * UnityEngine.Random.value, Color.Lerp(Color.gray, Color.white, UnityEngine.Random.value), null, 10 * (int)factor, 15 * (int)factor));
-                    }
-                    self.room.PlaySound(SoundID.Fire_Spear_Explode, pos, 0.4f, 1.1f - (0.15f * factor));
+                        ignorePlayer = true,
+                        killTagHolder = self.abstractCreature
+                    });
                 }
+            }
+        }
+
+        public static ConditionalWeakTable<Player, PlayerAndWeapon> TpWeapon = new ConditionalWeakTable<Player, PlayerAndWeapon>();
+
+        public static void Player_ctor(On.Player.orig_ctor orig, Player player, AbstractCreature abstractCreature, World world)
+        {
+            orig.Invoke(player, abstractCreature, world);
+
+            //Creating the saint tongue
+            if (ExpeditionsEnhanced.ActiveContent("unl-stongue") && player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
+            {
+                player.tongue = new Player.Tongue(player, 0);
+            }
+
+            //Initializing the cooldown for thunder god
+            if (ExpeditionsEnhanced.ActiveContent("unl-thundergod"))
+            {
+                if (!TpWeapon.TryGetValue(player, out _)) TpWeapon.Add(player, new(player));
+            }
+        }
+        public static void Player_ThrowObject(ILContext il)
+        {
+            ILCursor c = new(il);
+            if (c.TryGotoNext(
+                x => x.MatchCallOrCallvirt<Player>("Blink")))
+            {
+                c.Emit(OpCodes.Ldarg_0);
+                c.Emit(OpCodes.Ldarg_1);
+                c.EmitDelegate<Action<Player, int>>((player, grasp) =>
+                {
+                    if (ExpeditionsEnhanced.ActiveContent("unl-thundergod"))
+                    {
+                        if (TpWeapon.TryGetValue(player, out var tp) && tp.ready)
+                        {
+                            tp.w = player.grasps[grasp].grabbed as Weapon;
+                        }
+                    }
+                });
+            }
+            else Plugin.logger.LogError("The throw thing doesnt work mr man: " + il);
+        }
+
+        public static void Player_GrabUpdate(On.Player.orig_GrabUpdate orig, Player self, bool eu)
+        {
+            orig.Invoke(self, eu);
+
+            if (TpWeapon.TryGetValue(self, out var tp))
+            {
+                tp.Update();
+            }
+        }
+
+        public class PlayerAndWeapon
+        {
+            public Player self;
+            public Weapon w;
+            public bool ready;
+            public int counter;
+            public int maxCounter;
+
+            public PlayerAndWeapon(Player p)
+            {
+                self = p;
+                ready = true;
+                maxCounter = 100;
+            }
+
+            public void Update()
+            {
+                if (self != null && self.mainBodyChunk != null && self.room != null)
+                {
+                    if (counter > 0)
+                    {
+                        counter--;
+                        if (counter == 0)
+                        {
+                            ready = true;
+                            self.room.AddObject(new MarkFlash("symbol_thundergod", self.firstChunk.pos + Custom.DirVec(self.mainBodyChunk.pos, self.firstChunk.pos) * self.firstChunk.rad * 4f, new Color(0.615f, 0.925f, 0.960f), 0.8f));
+                        }
+                    }
+                }
+
+                if (w != null && ready)
+                {
+                    bool less = Custom.DistLess(w.firstChunk.pos, self.mainBodyChunk.pos, 180f);
+                    IntVector2 possum = self.room.GetTilePosition(w.firstChunk.pos);
+                    if (w.room == null || w.room != self.room || ((less || possum.x < 0 || possum.x > self.room.TileWidth) && !self.input[0].thrw))
+                    {
+                        w = null;
+                    }
+                    else if (!self.input[0].thrw && possum.x >= 0 && possum.x < self.room.TileWidth)
+                    {
+                        float dist = Vector2.Distance(self.mainBodyChunk.pos, w.firstChunk.pos);
+                        Vector2 playerPos = self.mainBodyChunk.pos;
+
+                        self.room.AddObject(new StaticElectricty(self.mainBodyChunk.pos, w.firstChunk.pos, Mathf.Lerp(4f, 6f, UnityEngine.Random.value), 5f, new Color(0.615f, 0.925f, 0.960f), Vector2.Distance(self.mainBodyChunk.pos, w.firstChunk.pos) / 7f));
+                        self.room.PlaySound(SoundID.Death_Lightning_Spark_Spontaneous, w.firstChunk.pos, 1f, Mathf.Lerp(0.9f, 1.25f, UnityEngine.Random.value));
+                        self.room.AddObject(new Explosion.ExplosionLight(self.mainBodyChunk.pos, dist / 5f, 0.66f, 16, StaticElectricty.RandomizeColorABit(new Color(0.615f, 0.925f, 0.960f))));
+                        
+                        for (int i = 0; i < UnityEngine.Random.Range(5, 10); i++)
+                        {
+                            self.room.AddObject(new Spark(self.mainBodyChunk.pos, Custom.RNV() * dist / 50f, StaticElectricty.RandomizeColorABit(new Color(0.615f, 0.925f, 0.960f)), null, 20, 40));
+                        }
+
+                        foreach (var chunk in self.bodyChunks)
+                        {
+                            self.room.AddObject(new StaticElectricty(chunk.pos, w.firstChunk.pos, 1f, 1f, new Color(0.615f, 0.925f, 0.960f), dist / 5f));
+                            chunk.HardSetPosition(w.firstChunk.pos);
+                            chunk.vel *= 0f;
+                        }
+
+                        self.room.AddObject(new Explosion.ExplosionLight(self.mainBodyChunk.pos, dist / 3f, 0.66f, 12, StaticElectricty.RandomizeColorABit(new Color(0.615f, 0.925f, 0.960f))));
+
+                        if (self.graphicsModule != null)
+                        {
+                            var grr = self.graphicsModule as PlayerGraphics;
+
+                            foreach (var part in grr.bodyParts)
+                            {
+                                part.pos = w.firstChunk.pos;
+                                part.lastPos = part.pos;
+                            }
+
+                            foreach (var part in grr.tail)
+                            {
+                                part.pos = w.firstChunk.pos;
+                                part.lastPos = part.pos;
+                            }
+                        }
+
+                        w.firstChunk.HardSetPosition(playerPos);
+                        if (w.mode == Weapon.Mode.Thrown) 
+                        {
+                            w.throwDir = new IntVector2(-w.throwDir.x, -w.throwDir.y);
+                            w.firstChunk.vel = -w.firstChunk.vel;
+                            w.setRotation = new Vector2?(w.throwDir.ToVector2());
+                        }
+                        if (w is Spear spear && spear.stuckInObject != null)
+                        {
+                            foreach (BodyChunk chunj in spear.stuckInObject.bodyChunks)
+                            {
+                                chunj.HardSetPosition(playerPos);
+                            }
+                        }
+
+                        ready = false;
+                        w = null;
+                        counter = maxCounter;
+                    }
+                    else if (UnityEngine.Random.value < 0.33f && !less)
+                    {
+                        self.room.AddObject(new StaticElectricty(self.mainBodyChunk.pos, w.firstChunk.pos, 1f, 1f, new Color(0.615f, 0.925f, 0.960f), Vector2.Distance(self.mainBodyChunk.pos, w.firstChunk.pos) / 10f));
+                        self.room.PlaySound(SoundID.Spore_Bee_Spark, self.mainBodyChunk.pos, 0.6f, 1.25f);
+                    }
+                }
+            }
+
+            public class MarkFlash : CosmeticSprite
+            {
+                public string sprite;
+                public Color color;
+                public float life;
+                public float maxLife;
+                public bool shitGoBack;
+
+                public MarkFlash(string spriteName, Vector2 pos, Color color, float lifeTime)
+                {
+                    this.pos = pos;
+                    lastPos = pos;
+                    this.color = color;
+                    life = 0f;
+                    maxLife = lifeTime;
+                    sprite = spriteName;
+                }
+
+                public override void Update(bool eu)
+                {
+                    base.Update(eu);
+
+                    life = shitGoBack ? Mathf.Max(0f, life - 0.12f) : Mathf.Min(maxLife, life + 0.12f);
+                    if (life == maxLife)
+                    {
+                        shitGoBack = true;
+                        for (int i = 0; i < UnityEngine.Random.Range(5, 10); i++)
+                        {
+                            room.AddObject(new Spark(pos + Custom.RNV() * 10f * UnityEngine.Random.value, Custom.RNV() * 8f * UnityEngine.Random.value, StaticElectricty.RandomizeColorABit(new Color(0.615f, 0.925f, 0.960f)), null, 15, 25));
+                        }
+                        room.AddObject(new Explosion.ExplosionLight(pos, 100f, 0.5f, 10, StaticElectricty.RandomizeColorABit(new Color(0.615f, 0.925f, 0.960f))));
+                        room.PlaySound(SoundID.Spore_Bee_Spark, pos, 2f, 3f);
+                    }
+                    if (shitGoBack && life == 0f) Destroy();
+                }
+
+                public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+                {
+                    sLeaser.sprites = new FSprite[1];
+                    sLeaser.sprites[0] = new FSprite(sprite, true)
+                    {
+                        color = color,
+                        alpha = 0
+                    };
+                    AddToContainer(sLeaser, rCam, null);
+                    base.InitiateSprites(sLeaser, rCam);
+                }
+
+                public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+                {
+                    base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
+
+                    Vector2 poss = Vector2.Lerp(lastPos, pos, timeStacker);
+                    sLeaser.sprites[0].SetPosition(poss - camPos);
+                    sLeaser.sprites[0].alpha = Custom.LerpMap(life, 0f, maxLife, 0f, 1f);
+                    sLeaser.sprites[0].scale = Custom.LerpMap(life * 0.66f, 0f, maxLife, 0.33f, 1f);
+                }
+            }
+        }
+
+        public class StaticElectricty : CosmeticSprite
+        {
+            public Color color;
+            public Vector2 goalPos;
+            public float inBetweenPoint;
+            public float deviation;
+            public float lifeTime;
+            public float width;
+            public float maxlifeTime;
+
+            public StaticElectricty(Vector2 pos, Vector2 goalPos, float width, float lifeTime, Color color, float maxDeviation)
+            {
+                this.pos = pos;
+                lastPos = pos;
+                this.goalPos = goalPos;
+                maxlifeTime = lifeTime;
+                this.lifeTime = lifeTime;
+                inBetweenPoint = Mathf.Lerp(0.2f, 0.8f, UnityEngine.Random.value);
+                deviation = Mathf.Lerp(-maxDeviation, maxDeviation, UnityEngine.Random.value);
+                this.width = width;
+                this.color = RandomizeColorABit(color);
+            }
+
+            public static Color RandomizeColorABit(Color color, float factor1 = 0.1f, float factor2 = 0.1f)
+            {
+                var hslcolor = Custom.RGB2HSL(color);
+                color = Custom.HSL2RGB(Custom.WrappedRandomVariation(hslcolor.x, factor1, factor2), hslcolor.y, Custom.ClampedRandomVariation(hslcolor.z, factor1, factor2));
+                return color;
+            }
+
+            public override void Update(bool eu)
+            {
+                base.Update(eu);
+
+                lifeTime = Mathf.Max(0f, lifeTime - 0.1f);
+                if (lifeTime == 0f)
+                {
+                    Destroy();
+                }
+            }
+
+            public override void InitiateSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+            {
+                sLeaser.sprites = new FSprite[2];
+                sLeaser.sprites[0] = new FSprite("pixel", true)
+                {
+                    anchorX = 0f,
+                    anchorY = 0.5f,
+                    scaleY = width,
+                    shader = rCam.game.rainWorld.Shaders["Hologram"]
+                };
+                sLeaser.sprites[1] = new FSprite("pixel", true)
+                {
+                    anchorX = 0f,
+                    anchorY = 0.5f,
+                    scaleY = width,
+                    shader = rCam.game.rainWorld.Shaders["Hologram"]
+                };
+                AddToContainer(sLeaser, rCam, null);
+            }
+
+            public override void DrawSprites(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+            {
+                Vector2 deviousPos = Vector2.Lerp(pos, goalPos, inBetweenPoint) + Custom.PerpendicularVector(pos, goalPos) * deviation;
+                float alpf = Custom.LerpMap(lifeTime, maxlifeTime, 0f, 1f, 0f, 0.9f);
+
+                sLeaser.sprites[0].scaleX = Vector2.Distance(pos, deviousPos);
+                sLeaser.sprites[1].scaleX = Vector2.Distance(goalPos, deviousPos);
+                sLeaser.sprites[0].scaleY = width * alpf;
+                sLeaser.sprites[1].scaleY = width * alpf;
+                sLeaser.sprites[0].SetPosition(pos - camPos);
+                sLeaser.sprites[1].SetPosition(goalPos - camPos);
+                sLeaser.sprites[0].rotation = Custom.VecToDeg(Custom.DirVec(pos, deviousPos)) - 90;
+                sLeaser.sprites[1].rotation = Custom.VecToDeg(Custom.DirVec(goalPos, deviousPos)) - 90;
+                sLeaser.sprites[0].alpha = alpf;
+                sLeaser.sprites[1].alpha = alpf;
+
+                base.DrawSprites(sLeaser, rCam, timeStacker, camPos);
+            }
+
+            public override void ApplyPalette(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+            {
+                sLeaser.sprites[0].color = color;
+                sLeaser.sprites[1].color = color;
             }
         }
 
@@ -134,8 +428,10 @@ namespace ExpeditionEnhanced.ExampleContent
                 AbstractPhysicalObject.AbstractObjectType.VultureMask,
                 AbstractPhysicalObject.AbstractObjectType.Lantern,
                 AbstractPhysicalObject.AbstractObjectType.Spear,
-                AbstractPhysicalObject.AbstractObjectType.KarmaFlower,
+                //AbstractPhysicalObject.AbstractObjectType.KarmaFlower, 
                 AbstractPhysicalObject.AbstractObjectType.Rock,
+                new AbstractPhysicalObject.AbstractObjectType("FireEgg", false),
+                new AbstractPhysicalObject.AbstractObjectType("LillyPuck", false),
             };
 
             public PrizeWoah(Vector2 startPos, Vector2 playerPos)
@@ -163,7 +459,7 @@ namespace ExpeditionEnhanced.ExampleContent
                 {
                     for (int i = 0; i < prizess; i++)
                     {
-                        prizeType = prizes[UnityEngine.Random.Range(0, prizes.Count)];
+                        prizeType = prizes[UnityEngine.Random.Range(0, prizes.Count - (ModManager.MSC ? 0 : 2))];
                         var prize = CustomPerk.GetCorrectAPO(prizeType, room, room.GetWorldCoordinate(pos));
                         prize.RealizeInRoom();
                         prize.realizedObject.firstChunk.lastPos = prize.realizedObject.firstChunk.pos;
@@ -191,19 +487,6 @@ namespace ExpeditionEnhanced.ExampleContent
                     alpha = 0f
                 };
                 AddToContainer(sLeaser, rCam, null);
-            }
-        }
-
-
-
-        //Creating the saint tongue
-        public static void Player_ctor(On.Player.orig_ctor orig, Player player, AbstractCreature abstractCreature, World world)
-        {
-            orig.Invoke(player, abstractCreature, world);
-
-            if (ExpeditionsEnhanced.ActiveContent("unl-stongue") && player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint)
-            {
-                player.tongue = new Player.Tongue(player, 0);
             }
         }
 
