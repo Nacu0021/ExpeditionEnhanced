@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using static Expedition.ExpeditionGame;
 using System.Linq;
 using DevConsole;
+using MoreSlugcats;
 
 namespace ExpeditionEnhanced.ExampleContent
 {
@@ -255,7 +256,7 @@ namespace ExpeditionEnhanced.ExampleContent
 
         public static void Creature_Die(On.Creature.orig_Die orig, Creature self)
         {
-            if (!self.dead && ExpeditionsEnhanced.ActiveContent("bur-volatile"))
+            if (self != null && self.room != null && self.bodyChunks != null && !self.dead && ExpeditionsEnhanced.ActiveContent("bur-volatile"))
             {
                 float mass = self.TotalMass;
                 float div = Mathf.Lerp(Mathf.Max(0.1f, mass * 0.33f), mass, UnityEngine.Random.value);
@@ -315,7 +316,9 @@ namespace ExpeditionEnhanced.ExampleContent
                     {
                         if (RainWorld.roomIndexToName.ContainsKey(i))
                         {
-                            if (RainWorld.roomIndexToName[i] == self.denPosition) shelterToRemove = i;
+                            string name = RainWorld.roomIndexToName[i];
+                            if (name == "SL_SCRUSHED" && Expedition.ExpeditionData.slugcatPlayer != MoreSlugcatsEnums.SlugcatStatsName.Saint) continue;
+                            if (name == self.denPosition) shelterToRemove = i;
                         }
                     }
                 }
@@ -374,7 +377,7 @@ namespace ExpeditionEnhanced.ExampleContent
                 // Randomise
                 GlobalSpikeEventDifficulty = Custom.LerpMap(game.rainWorld.progression.currentSaveState.cycleNumber, 0, 20, 0f, 1f);
                 SpikesLeft = 10 + (int)(20 * GlobalSpikeEventDifficulty);
-                SpikeEventCountdown = UnityEngine.Random.Range(800, 1200);
+                SpikeEventCountdown = UnityEngine.Random.Range(1000, 1200);
                 Plugin.logger.LogMessage(GlobalSpikeEventDifficulty + " " + SpikesLeft);
             }
         }
@@ -415,13 +418,12 @@ namespace ExpeditionEnhanced.ExampleContent
                 {
                     rumble = reverse ? Mathf.Max(rumble - 1, 0) : Mathf.Min(rumble + 1, 200);
 
-                    for (int i = 0; i < game.cameras.Length; i++)
-                    {
-                        game.cameras[i].ScreenMovement(null, Custom.RNV() * 0.1f, rumble / 1200f);
-                    }
-
                     //if (!reverse && rumble < 100) return;
                     if (game.cameras[0].room == null) return;
+                    try
+                    {
+                        game.cameras[0].room.ScreenMovement(null, Custom.RNV() * 0.1f, rumble / 1200f);
+                    } catch { }
 
                     emitter ??= game.cameras[0].room.PlayDisembodiedLoop(Plugin.WarningSound, 0f, 1f, 0f);
                     emitter.volume = Mathf.InverseLerp(0, 300, rumble);
@@ -465,9 +467,11 @@ namespace ExpeditionEnhanced.ExampleContent
             // This is such a mess oh my gog
             public void SpawnSpike()
             {
-                if (game.Players[0] != null && game.Players[0].realizedCreature != null && !game.Players[0].realizedCreature.inShortcut && !game.Players[0].realizedCreature.room.abstractRoom.shelter) 
+                if (game == null || game.Players == null || game.Players.Count < 1) return;
+                int p = UnityEngine.Random.Range(0, game.Players.Count);
+
+                if (game.Players[p] != null && game.Players[p].realizedCreature is Player player && player.room != null && !player.inShortcut && !player.room.abstractRoom.shelter) 
                 {
-                    Player player = game.Players[0].realizedCreature as Player;
                     List<Vector2> tiles = new List<Vector2>();
                     float diff = Mathf.Max(GlobalSpikeEventDifficulty, LocalSpikeEventDifficulty);
                     for (int i = 0; i < 4; i++) // 4 possible random tile checks per spike

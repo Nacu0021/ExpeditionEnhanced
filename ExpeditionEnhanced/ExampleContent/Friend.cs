@@ -25,18 +25,17 @@ namespace ExpeditionEnhanced.ExampleContent
 
             //Choosing a lizard type based on the slugcat youre playing (with default being the StartCreature which is PinkLizard)
             string region = room.world.region.name.ToLowerInvariant();
-            bool water = region == "sl" || region == "ms" || region == "ds";
-            bool air = region == "uw" || region == "cc" || region == "si"|| region == "lc";
-            CreatureType friendType = air ? CreatureType.WhiteLizard : water ? CreatureType.Salamander : StartCreature;
+            bool water = region == "sl" || region == "ms" || region == "ds" || region == "vs" || region == "lm" || region == "ug";
+            bool air = region == "uw" || region == "cc" || region == "si" || region == "lc" || region == "ss" || region == "rm" || region == "dm" || region == "cl";
+            CreatureType friendType = air ? CreatureType.WhiteLizard : water ? (ModManager.MSC ? MSCCreatureType.EelLizard : CreatureType.Salamander) : StartCreature;
 
-            friendType = StartCreature;
             if (ExpeditionData.slugcatPlayer == SlugcatStats.Name.Red)
             {
-                friendType = CreatureType.CyanLizard;
+                friendType = water ? CreatureType.Salamander : CreatureType.CyanLizard;
             }
             else if (ExpeditionData.slugcatPlayer == SlugcatStats.Name.Night)
             {
-                friendType = air ? CreatureType.WhiteLizard : water ? CreatureType.Salamander : CreatureType.BlackLizard;
+                friendType = CreatureType.BlackLizard;
             }
             else if (ExpeditionData.slugcatPlayer == MoreSlugcatsEnums.SlugcatStatsName.Rivulet)
             {
@@ -44,19 +43,27 @@ namespace ExpeditionEnhanced.ExampleContent
             }
             else if (ExpeditionData.slugcatPlayer == MoreSlugcatsEnums.SlugcatStatsName.Saint)
             {
-                friendType = MSCCreatureType.ZoopLizard;
+                friendType = air ? CreatureType.WhiteLizard : water ? MSCCreatureType.EelLizard : StartCreature;
             }
             else if (ExpeditionData.slugcatPlayer == MoreSlugcatsEnums.SlugcatStatsName.Gourmand)
             {
-                friendType = MSCCreatureType.SpitLizard;
+                friendType = air ? CreatureType.WhiteLizard : water ? MSCCreatureType.EelLizard : MSCCreatureType.SpitLizard;
             }
             else if (ExpeditionData.slugcatPlayer == MoreSlugcatsEnums.SlugcatStatsName.Spear)
             {
-                friendType = CreatureType.CyanLizard;
+                friendType = water ? CreatureType.Salamander : CreatureType.CyanLizard;
             }
             else if (ExpeditionData.slugcatPlayer == MoreSlugcatsEnums.SlugcatStatsName.Artificer)
             {
-                friendType = CreatureType.RedLizard;
+                friendType = air ? CreatureType.CyanLizard : water ? MSCCreatureType.EelLizard : CreatureType.RedLizard;
+            }
+            else if (ExpeditionData.slugcatPlayer == MoreSlugcatsEnums.SlugcatStatsName.Sofanthiel)
+            {
+                friendType = MSCCreatureType.TrainLizard;
+            }
+            else if (ExpeditionData.slugcatPlayer == MoreSlugcatsEnums.SlugcatStatsName.Slugpup)
+            {
+                friendType = CreatureType.BlueLizard;
             }
             AbstractCreature player = room.game.Players[0];
             if (player != null)

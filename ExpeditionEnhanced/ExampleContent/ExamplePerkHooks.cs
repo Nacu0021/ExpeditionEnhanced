@@ -47,12 +47,17 @@ namespace ExpeditionEnhanced.ExampleContent
                 if (spikePos.HasValue)
                 {
                     Vector2 spikePosPos = self.room.MiddleOfTile(spikePos.Value) - new Vector2(0f, 10f);
-                    self.room.AddObject(new ExampleBurdenHooks.GroundSpike(spikePosPos, UnityEngine.Random.Range(7, 12), self.mainBodyChunk.pos + Custom.DirVec(self.room.MiddleOfTile(spikePos.Value), self.mainBodyChunk.pos) * new Vector2(-1f, 1f) * UnityEngine.Random.Range(80, 180))
+                    self.room.AddObject(new ExampleBurdenHooks.GroundSpike(spikePosPos, UnityEngine.Random.Range(10, 15), self.mainBodyChunk.pos + (Vector2)Vector3.Slerp(Custom.DirVec(self.room.MiddleOfTile(spikePos.Value), self.mainBodyChunk.pos), Vector2.left, 0.4f + 0.2f * UnityEngine.Random.value) * UnityEngine.Random.Range(80, 160))
                     {
                         ignorePlayer = true,
                         killTagHolder = self.abstractCreature
                     });
-                    self.room.AddObject(new ExampleBurdenHooks.GroundSpike(spikePosPos, UnityEngine.Random.Range(7, 12), self.mainBodyChunk.pos + Custom.DirVec(self.room.MiddleOfTile(spikePos.Value), self.mainBodyChunk.pos) * UnityEngine.Random.Range(60, 140))
+                    self.room.AddObject(new ExampleBurdenHooks.GroundSpike(spikePosPos, UnityEngine.Random.Range(10, 15), self.mainBodyChunk.pos + (Vector2)Vector3.Slerp(Custom.DirVec(self.room.MiddleOfTile(spikePos.Value), self.mainBodyChunk.pos), Vector2.right, 0.4f + 0.2f * UnityEngine.Random.value) * UnityEngine.Random.Range(80, 160))
+                    {
+                        ignorePlayer = true,
+                        killTagHolder = self.abstractCreature
+                    });
+                    self.room.AddObject(new ExampleBurdenHooks.GroundSpike(spikePosPos, UnityEngine.Random.Range(10, 18), self.mainBodyChunk.pos + Custom.DirVec(self.room.MiddleOfTile(spikePos.Value), self.mainBodyChunk.pos) * UnityEngine.Random.Range(100, 200))
                     {
                         ignorePlayer = true,
                         killTagHolder = self.abstractCreature
@@ -539,7 +544,7 @@ namespace ExpeditionEnhanced.ExampleContent
         }
 
         //This dictionary exists to make sure we always get the correct index of our new tongue sprite
-        public static Dictionary<PlayerGraphics, int> TongueSpriteIndex = new();
+        public static Dictionary<PlayerGraphics, int> TongueSpriteIndex = [];
 
         //Making it so theres a correct amount of sprites, cause the tongue is a sprite on the player
         public static void PlayerGraphics_InitiateSprites(On.PlayerGraphics.orig_InitiateSprites orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
@@ -555,8 +560,7 @@ namespace ExpeditionEnhanced.ExampleContent
                 Array.Resize(ref sLeaser.sprites, sLeaser.sprites.Length + 1);
 
                 //Set the value of this dictionary to the last sprite
-                if (TongueSpriteIndex.ContainsKey(self)) TongueSpriteIndex[self] = sLeaser.sprites.Length - 1;
-                else TongueSpriteIndex.Add(self, sLeaser.sprites.Length - 1);
+                TongueSpriteIndex[self] = sLeaser.sprites.Length - 1;
 
                 //We make the last sprite of the array the tongue mesh
                 sLeaser.sprites[TongueSpriteIndex[self]] = TriangleMesh.MakeLongMesh(self.ropeSegments.Length - 1, false, true);
@@ -625,7 +629,7 @@ namespace ExpeditionEnhanced.ExampleContent
         {
             orig.Invoke(self, sLeaser, rCam, palette);
 
-            if (ExpeditionsEnhanced.ActiveContent("unl-stongue") && self.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint && TongueSpriteIndex.ContainsKey(self))
+            if (ExpeditionsEnhanced.ActiveContent("unl-stongue") && self != null && self.player != null && self.player.SlugCatClass != MoreSlugcatsEnums.SlugcatStatsName.Saint && TongueSpriteIndex.ContainsKey(self) && sLeaser.sprites[TongueSpriteIndex[self]] is TriangleMesh mesh && mesh.verticeColors != null)
             {
                 //Relevant parts copied from the game's code
                 float a = 0.95f;
@@ -633,10 +637,10 @@ namespace ExpeditionEnhanced.ExampleContent
                 float sl = 1f;
                 float a2 = 0.75f;
                 float b2 = 0.9f;
-                for (int j = 0; j < (sLeaser.sprites[TongueSpriteIndex[self]] as TriangleMesh).verticeColors.Length; j++)
+                for (int j = 0; j < mesh.verticeColors.Length; j++)
                 {
-                    float num2 = Mathf.Clamp(Mathf.Sin((float)j / (float)((sLeaser.sprites[TongueSpriteIndex[self]] as TriangleMesh).verticeColors.Length - 1) * 3.1415927f), 0f, 1f);
-                    (sLeaser.sprites[TongueSpriteIndex[self]] as TriangleMesh).verticeColors[j] = Color.Lerp(palette.fogColor, Custom.HSL2RGB(Mathf.Lerp(a, b, num2), sl, Mathf.Lerp(a2, b2, Mathf.Pow(num2, 0.15f))), 0.7f);
+                    float num2 = Mathf.Clamp(Mathf.Sin((float)j / (float)(mesh.verticeColors.Length - 1) * 3.1415927f), 0f, 1f);
+                    mesh.verticeColors[j] = Color.Lerp(palette.fogColor, Custom.HSL2RGB(Mathf.Lerp(a, b, num2), sl, Mathf.Lerp(a2, b2, Mathf.Pow(num2, 0.15f))), 0.7f);
                 }
             }
         }

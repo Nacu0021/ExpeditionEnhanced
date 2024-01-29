@@ -34,7 +34,7 @@ namespace ExpeditionEnhanced.ExampleContent
 
                 //Stolen code from ScavengerBomb.Explode with tweaked values
                 Vector2 pos = weapon.firstChunk.pos;
-                socialEventRecognizer.room.AddObject(new Explosion(socialEventRecognizer.room, weapon, pos, 7, 30f * factor, factor * 2.5f, 0.15f * factor, 20f * factor, 0f, thrower, 0.3f * factor, 10f * factor, 0.1f * factor));
+                socialEventRecognizer.room.AddObject(new Explosion(socialEventRecognizer.room, weapon, pos, 7, 30f * factor, factor * 2.5f, 0.3f * factor, 20f * factor, 0f, thrower, 0.3f * factor, 10f * factor, 0.1f * factor));
                 //socialEventRecognizer.room.AddObject(new Explosion.ExplosionLight(pos, 30f * factor, 1f, 3, Color.white));
                 //socialEventRecognizer.room.AddObject(new ExplosionSpikes(socialEventRecognizer.room, pos, (int)(3 * factor), 30f * factor, 9f, 7f, 10f * factor, new Color(0.01f, 0.01f, 0.01f)));
                 //socialEventRecognizer.room.AddObject(new ShockWave(pos, 30f * factor, 0.04f * factor, 5, false));

@@ -10,7 +10,7 @@ namespace ExpeditionEnhanced
 {
     using ExampleContent;
 
-    [BepInPlugin("nacu.expeditionenhanced", "Expedition Enhanced", "2.0")]
+    [BepInPlugin("nacu.expeditionenhanced", "Expedition Enhanced", "2.0.2")]
     public class Plugin : BaseUnityPlugin
     {
         public static bool AppliedAlreadyDontDoItAgainPlease;
@@ -18,14 +18,12 @@ namespace ExpeditionEnhanced
 
         public static SoundID WarningSound;
         public static SoundID SpikeSound;
-        public static SoundID Beep;
         public static SoundID LongBeep;
 
         public void Awake()
         {
             WarningSound = new SoundID("ee_event_warning_rumble", true);
             SpikeSound = new SoundID("ee_ground_spike_launch", true);
-            Beep = new SoundID("ee_bomb_beep", true);
             LongBeep = new SoundID("ee_bomb_long_beep", true);
         }
 
