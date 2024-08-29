@@ -1,19 +1,36 @@
-﻿using RWCustom;
+﻿using MoreSlugcats;
+using RWCustom;
 using UnityEngine;
 
 namespace ExpeditionEnhanced.ExampleContent
 {
-    public class Volatile : CustomBurden
+    using static ExampleBurdenHooks;
+    public class Volatile : EECustomBurden
     {
-        public override float ScoreMultiplier => 65f;
+        public override float ScoreMultiplier => 70f;
         public override string ID => "bur-volatile";
-        public override string Name => "VOLATILE";
-        public override string ManualDescription => "Causes all creatures to drop explosives upon death.";
+        public override string DisplayName => "VOLATILE";
+        public override string ManualDescription => "Causes all creatures to drop deadly explosives upon death.";
         public override Color Color => VOLATILE_PINK;
-        public override bool AlwaysUnlocked => true;
+        public override bool UnlockedByDefault => true;
+        public override string Description => ManualDescription;
 
         public static Color VOLATILE_PINK = new(0.929f, 0.176f, 0.466f);
         public static Color VOLATILE_PINK2 = new(0.941f, 0.705f, 0.796f);
+
+        public override void ApplyHooks()
+        {
+            On.Creature.Die += Creature_Die;
+            //Cosmetics for existing boom items
+            On.ExplosiveSpear.ApplyPalette += ExplosiveSpear_ApplyPalette;
+            IL.ExplosiveSpear.Explode += ExplosiveSpear_ExplodeIL;
+            IL.ScavengerBomb.Explode += ScavengerBomb_ExplodeIL;
+            On.ScavengerBomb.InitiateSprites += ScavengerBomb_InitiateSprites;
+            On.ScavengerBomb.DrawSprites += ScavengerBomb_DrawSprites;
+            On.ScavengerBomb.ApplyPalette += ScavengerBomb_ApplyPalette;
+            On.ScavengerBomb.UpdateColor += ScavengerBomb_UpdateColor;
+            On.ScavengerBomb.Thrown += ScavengerBomb_Thrown;
+        }
     }
 
     public class VolatileBomb : CosmeticSprite
@@ -38,6 +55,29 @@ namespace ExpeditionEnhanced.ExampleContent
         public float finalBeep;
         public float life;
         public PositionedSoundEmitter longBeep;
+        public float airFriction;
+        public float waterFriction;
+
+        public float submersion
+        {
+            get
+            {
+                if (room == null)
+                {
+                    return 0f;
+                }
+                if (room.waterInverted)
+                {
+                    return 1f - Mathf.InverseLerp(pos.y - rad, pos.y + rad, room.FloatWaterLevel(pos.x));
+                }
+                float num = room.FloatWaterLevel(pos.x);
+                if (ModManager.MMF && !MMF.cfgVanillaExploits.Value && num > (room.abstractRoom.size.y + 20) * 20f)
+                {
+                    return 1f;
+                }
+                return Mathf.InverseLerp(pos.y - rad, pos.y + rad, num);
+            }
+        }
 
         public VolatileBomb(Vector2 pos, Vector2 vel, float scaleFac)
         {
@@ -52,13 +92,15 @@ namespace ExpeditionEnhanced.ExampleContent
             rotSpeed = Mathf.Lerp(4f, 9f, Random.value);
             yRotDir = Random.value < 0.5f;
             life = Mathf.Lerp(0.85f, 1.25f, Random.value) * (scaleFac/3f);
+            airFriction = 0.99f;
+            waterFriction = 0.95f;
         }
 
         public override void Update(bool eu)
         {
             base.Update(eu);
 
-            vel *= 0.99f;
+            vel *= Mathf.Lerp(airFriction, waterFriction, submersion);
             vel -= new Vector2(0f, g);
 
             // Rotations
@@ -163,7 +205,7 @@ namespace ExpeditionEnhanced.ExampleContent
 
         public void Boom()
         {
-            room.AddObject(new Explosion(room, null, pos, 12, 30f + rad * 12.5f, 2.33f + rad * 0.9f, rad * 0.5f, rad * 3f, 0f, null, 1f, 40, 0f));
+            room.AddObject(new Explosion(room, null, pos, 12, 30f + rad * 12.5f, 2.33f + rad * 0.9f, rad * 0.6f, rad * 3f, 0f, null, 1f, 40, 0f));
             VolatileEffect(room, pos, rad);
             room.ScreenMovement(new Vector2?(pos), default, 0.15f * rad);
             room.PlaySound(SoundID.Fire_Spear_Explode, pos, 0.7f, (0.6f + 0.2f * Random.value) * Custom.LerpMap(rad, 3f, 10f, 2.5f, 0.3f));

@@ -11,31 +11,6 @@ namespace ExpeditionEnhanced.ExampleContent
 {
     public class ExamplePerkHooks
     {
-        public static void Apply()
-        {
-            //Thunder god perk
-            IL.Player.ThrowObject += Player_ThrowObject;
-            On.Player.GrabUpdate += Player_GrabUpdate;
-
-            //Make a wish perk
-            On.Player.ReleaseGrasp += Player_ReleaseGrasp;
-            On.DataPearl.PickedUp += DataPearl_PickedUp;
-            On.DataPearl.Update += DataPearl_Update;
-
-            //Saint tongue perk
-            On.Player.ctor += Player_ctor;
-            On.Player.SaintTongueCheck += Player_SaintTongueCheck;
-            On.Player.ClassMechanicsSaint += Player_ClassMechanicsSaint;
-            On.PlayerGraphics.ctor += PlayerGraphics_ctor;
-            On.PlayerGraphics.InitiateSprites += PlayerGraphics_InitiateSprites;
-            On.PlayerGraphics.DrawSprites += PlayerGraphics_DrawSprites;
-            On.PlayerGraphics.ApplyPalette += PlayerGraphics_ApplyPalette;
-            On.PlayerGraphics.MSCUpdate += PlayerGraphics_MSCUpdate;
-
-            //Ground Spikes
-            On.Player.Jump += Player_Jump;
-        }
-
         public static void Player_Jump(On.Player.orig_Jump orig, Player self)
         {
             int j = self.superLaunchJump;
@@ -465,7 +440,7 @@ namespace ExpeditionEnhanced.ExampleContent
                     for (int i = 0; i < prizess; i++)
                     {
                         prizeType = prizes[UnityEngine.Random.Range(0, prizes.Count - (ModManager.MSC ? 0 : 2))];
-                        var prize = CustomPerk.GetCorrectAPO(prizeType, room, room.GetWorldCoordinate(pos));
+                        var prize = EECustomPerk.GetCorrectAPO(prizeType, room, room.GetWorldCoordinate(pos));
                         prize.RealizeInRoom();
                         prize.realizedObject.firstChunk.lastPos = prize.realizedObject.firstChunk.pos;
                     }

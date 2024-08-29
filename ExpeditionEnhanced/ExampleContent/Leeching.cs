@@ -3,15 +3,15 @@ using RWCustom;
 
 namespace ExpeditionEnhanced.ExampleContent
 {
-    public class Leeching : CustomPerk
+    public class Leeching : EECustomPerk
     {
         public override string ID => "unl-leeching";
-        public override string Name => "Leeching";
+        public override string DisplayName => "Leeching";
         public override string Description => "Gain food upon killing creatures";
         public override string ManualDescription => "When killing a creature, gain a quarter pip of food. Bigger creatures killed yield more food!";
         public override string SpriteName => "Kill_Leech";
         public override Color Color => new Color(0.68235296f, 0.15686275f, 0.11764706f);
-        public override bool AlwaysUnlocked => true;
+        public override bool UnlockedByDefault => true;
         public override CustomPerkType PerkType => CustomPerkType.OnKill; //This means the OnKill function triggers whenever a player kills something
 
         //You need to override this if you want the OnKill perk type to do anything.

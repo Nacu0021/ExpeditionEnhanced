@@ -5,6 +5,7 @@ using DevConsole.Commands;
 
 namespace ExpeditionEnhanced
 {
+    using BepInEx.Logging;
     using ExampleContent;
 
     public class Console
@@ -56,6 +57,8 @@ namespace ExpeditionEnhanced
                     catch { GameConsole.WriteLine("Failed to spawn VolatileBomb!"); }
                 })
                 .Register();
+
+            Plugin.logger.LogMessage("DevConsole enabled, adding commands.");
         }
     }
 }

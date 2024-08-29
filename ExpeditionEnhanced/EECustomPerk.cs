@@ -4,17 +4,12 @@ using MoreSlugcats;
 using System;
 using ItemType = AbstractPhysicalObject.AbstractObjectType;
 using MSCItemType = MoreSlugcats.MoreSlugcatsEnums.AbstractObjectType;
+using Modding.Expedition;
 
 namespace ExpeditionEnhanced
 {
-    public abstract class CustomPerk : CustomContent
+    public abstract class EECustomPerk : CustomPerk
     {
-        /// <summary>Name of the sprite used for displaying the perk in the select menu and in game.</summary>
-        public abstract string SpriteName { get; }
-
-        /// <summary>The description of a perk shown in the select menu.</summary>
-        public abstract string Description { get; }
-
         /// <summary>The type of the custom perk. 
         /// OnStart - Spawns an item/creature in the first shelter of an expedition.
         /// OnKill - Does something whenever a creature is killed.
@@ -30,6 +25,8 @@ namespace ExpeditionEnhanced
         /// <summary>Specifies the amount of items/creatures spawned with an OnStart perk.</summary>
         public virtual int StartObjectCount { get; } = 1;
 
+        public override string Group => "Expeditions Enhanced";
+
         public class CustomPerkType : ExtEnum<CustomPerkType>
         {
             public static readonly CustomPerkType Custom = new CustomPerkType("Custom", true);
@@ -40,7 +37,7 @@ namespace ExpeditionEnhanced
             public CustomPerkType(string value, bool register = false) : base(value, register) { }
         }
 
-        public CustomPerk() { }
+        public EECustomPerk() { }
 
         /// <summary>Called at the start of an expedition in the starting shelter. Can be overridden for custom logic.</summary>
         public virtual void OnStart(Room room, WorldCoordinate position)

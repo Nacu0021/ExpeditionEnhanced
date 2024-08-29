@@ -7,7 +7,6 @@ using RWCustom;
 using System.Collections.Generic;
 using static Expedition.ExpeditionGame;
 using System.Linq;
-using DevConsole;
 using MoreSlugcats;
 
 namespace ExpeditionEnhanced.ExampleContent
@@ -23,30 +22,7 @@ namespace ExpeditionEnhanced.ExampleContent
         public static void Apply()
         {
             //Crippled burden
-            CrippledMechanics.Apply();
-
-            //Confused
-            On.HUD.RainMeter.ctor += RainMeter_Ctor;
-            On.HUD.RainMeter.Draw += RainMeter_Draw;
-            On.HUD.Map.Draw += Map_Draw;
-            On.SaveState.BringUpToDate += SaveState_BringUpToDate;
-            //Splosh
-            On.Player.checkInput += Player_checkInput;
-
-            //Marked
-            On.ProcessManager.PostSwitchMainProcess += ProcessManager_PostSwitchMainProcess;
-
-            //Volatile
-            On.Creature.Die += Creature_Die;
-            //Cosmetics for existing boom items
-            On.ExplosiveSpear.ApplyPalette += ExplosiveSpear_ApplyPalette;
-            IL.ExplosiveSpear.Explode += ExplosiveSpear_ExplodeIL;
-            IL.ScavengerBomb.Explode += ScavengerBomb_ExplodeIL;
-            On.ScavengerBomb.InitiateSprites += ScavengerBomb_InitiateSprites;
-            On.ScavengerBomb.DrawSprites += ScavengerBomb_DrawSprites;
-            On.ScavengerBomb.ApplyPalette += ScavengerBomb_ApplyPalette;
-            On.ScavengerBomb.UpdateColor += ScavengerBomb_UpdateColor;
-            On.ScavengerBomb.Thrown += ScavengerBomb_Thrown;
+            //CrippledMechanics.Apply();
         }
 
         public static void ScavengerBomb_Thrown(On.ScavengerBomb.orig_Thrown orig, ScavengerBomb self, Creature thrownBy, Vector2 thrownPos, Vector2? firstFrameTraceFromPos, IntVector2 throwDir, float frc, bool eu)
@@ -182,7 +158,6 @@ namespace ExpeditionEnhanced.ExampleContent
             {
                 l.Index -= 8;
                 l.MarkLabel(lable);
-                Plugin.logger.LogMessage("halo1");
             }
             else Plugin.logger.LogMessage("ScavengerBomb_ExplodeIL LABEL FAILED " + il);
 
@@ -191,7 +166,6 @@ namespace ExpeditionEnhanced.ExampleContent
                 x => x.MatchCallOrCallvirt<Room>("AddObject")
                 ))
             {
-                Plugin.logger.LogMessage("halo2");
                 c.Emit(OpCodes.Ldarg_0);
                 c.Emit(OpCodes.Ldloc_0);
                 c.EmitDelegate<Func<ScavengerBomb, Vector2, bool>>((self, vector) =>
@@ -204,7 +178,6 @@ namespace ExpeditionEnhanced.ExampleContent
                     return false;
                 });
                 c.Emit(OpCodes.Brtrue, lable);
-                Plugin.logger.LogMessage("halo3");
             }
             else Plugin.logger.LogMessage("ScavengerBomb_ExplodeIL CONTENT FAILED " + il);
         }
@@ -304,7 +277,7 @@ namespace ExpeditionEnhanced.ExampleContent
         {
             orig.Invoke(self, game);
 
-            if (ExpeditionsEnhanced.ActiveContent("bur-confused"))
+            if (ExpeditionsEnhanced.ActiveContent("bur-crippled"))
             {
                 List<int> shelters = game.world.shelters.ToList();
                 // Removing current shelter from evaluation
@@ -376,9 +349,9 @@ namespace ExpeditionEnhanced.ExampleContent
             {
                 // Randomise
                 GlobalSpikeEventDifficulty = Custom.LerpMap(game.rainWorld.progression.currentSaveState.cycleNumber, 0, 20, 0f, 1f);
-                SpikesLeft = 10 + (int)(20 * GlobalSpikeEventDifficulty);
+                SpikesLeft = 8 + (int)(20 * GlobalSpikeEventDifficulty);
                 SpikeEventCountdown = UnityEngine.Random.Range(1000, 1200);
-                Plugin.logger.LogMessage(GlobalSpikeEventDifficulty + " " + SpikesLeft);
+                //Plugin.logger.LogMessage(GlobalSpikeEventDifficulty + " " + SpikesLeft);
             }
         }
 
@@ -422,7 +395,7 @@ namespace ExpeditionEnhanced.ExampleContent
                     if (game.cameras[0].room == null) return;
                     try
                     {
-                        game.cameras[0].room.ScreenMovement(null, Custom.RNV() * 0.1f, rumble / 1200f);
+                        game.cameras[0].room.ScreenMovement(null, Custom.RNV() * 0.1f, rumble / 1400f);
                     } catch { }
 
                     emitter ??= game.cameras[0].room.PlayDisembodiedLoop(Plugin.WarningSound, 0f, 1f, 0f);
@@ -456,8 +429,8 @@ namespace ExpeditionEnhanced.ExampleContent
                 LocalSpikeEventDifficulty = 0f;
                 maxSpikes = 0;
                 SpikesLeft = 10 + (int)(20 * GlobalSpikeEventDifficulty);
-                SpikeEventCountdown = UnityEngine.Random.Range(1000, 3500 - (int)(GlobalSpikeEventDifficulty * 1000));
-                Plugin.logger.LogMessage(GlobalSpikeEventDifficulty + " " + SpikesLeft);
+                SpikeEventCountdown = UnityEngine.Random.Range(1000 + (int)(GlobalSpikeEventDifficulty * 750), 3500 - (int)(GlobalSpikeEventDifficulty * 500));
+                //Plugin.logger.LogMessage(GlobalSpikeEventDifficulty + " " + SpikesLeft);
                 reverse = false;
                 emitter.alive = false; 
                 emitter.Destroy();
@@ -470,7 +443,7 @@ namespace ExpeditionEnhanced.ExampleContent
                 if (game == null || game.Players == null || game.Players.Count < 1) return;
                 int p = UnityEngine.Random.Range(0, game.Players.Count);
 
-                if (game.Players[p] != null && game.Players[p].realizedCreature is Player player && player.room != null && !player.inShortcut && !player.room.abstractRoom.shelter) 
+                if (game.Players[p] != null && game.Players[p].realizedCreature is Player player && player.room != null && !player.inShortcut && !player.room.abstractRoom.shelter && player.room.readyForAI && !player.room.aimap.getAItile(player.mainBodyChunk.pos).narrowSpace) 
                 {
                     List<Vector2> tiles = new List<Vector2>();
                     float diff = Mathf.Max(GlobalSpikeEventDifficulty, LocalSpikeEventDifficulty);
@@ -739,10 +712,10 @@ namespace ExpeditionEnhanced.ExampleContent
             {
                 TriangleMesh spikeMesh = sLeaser.sprites[0] as TriangleMesh;
                 spikeMesh.verticeColors[0] = palette.blackColor;
-                spikeMesh.verticeColors[1] = color;
+                spikeMesh.verticeColors[1] = ignorePlayer ? new Color(0f, 105f / 255f, 50f / 255f) : color;
                 spikeMesh.verticeColors[2] = palette.blackColor;
                 sLeaser.sprites[1].color = palette.blackColor;
-                sLeaser.sprites[2].color = Color.red;
+                sLeaser.sprites[2].color = ignorePlayer ? new Color(102f / 255f, 1f, 189f / 255f) : Color.red;
             }
 
             public override void AddToContainer(RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)

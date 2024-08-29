@@ -5,12 +5,14 @@ using System.Security;
 #pragma warning disable CS0618
 [module: UnverifiableCode]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+#pragma warning restore CS0618
 
 namespace ExpeditionEnhanced
 {
     using ExampleContent;
+    using Modding.Expedition;
 
-    [BepInPlugin("nacu.expeditionenhanced", "Expedition Enhanced", "2.0.2")]
+    [BepInPlugin("nacu.expeditionenhanced", "Expedition Enhanced", "2.1")]
     public class Plugin : BaseUnityPlugin
     {
         public static bool AppliedAlreadyDontDoItAgainPlease;
@@ -49,16 +51,19 @@ namespace ExpeditionEnhanced
                 Futile.atlasManager.LoadAtlas("Atlases/expeditionsenhanced");
 
                 ExpeditionsEnhanced.Apply();
-                ExpeditionsEnhanced.RegisterExpeditionContent( new Gourmet(), new Leeching(), new Friend(), new SaintTongue(), new MakeAWish(), new ThunderGod(), new GroundSpikes(), new ExplosiveDamage(), //Perks
-                                                              new Crippled(), new Confused(), new Marked(), new Volatile() ); //Burdens
-                ExamplePerkHooks.Apply();
+                //ExpeditionsEnhanced.RegisterExpeditionContent( new Gourmet(), new Leeching(), new Friend(), new SaintTongue(), new MakeAWish(), new ThunderGod(), new GroundSpikes(), new ExplosiveDamage(), //Perks
+                //                                              new Crippled(), new Confused(), new Marked(), new Volatile() ); //Burdens
+                //ExamplePerkHooks.Apply();
                 ExampleBurdenHooks.Apply();
+
+                CustomPerks.Register( new Gourmet(), new Leeching(), new Friend(), new SaintTongue(), new MakeAWish(), new ThunderGod(), new GroundSpikes(), new ExplosiveDamage() );
+                CustomBurdens.Register( new Crippled(), new Confused(), new Marked(), new Volatile() );
 
                 //ChallengeHooks.Apply();
 
                 //Custom DevConsole commands. Soft dependency
                 try { Console.RegisterCommands(); }
-                catch { }
+                catch { logger.LogMessage("DevConsole disabled, skipping adding commands."); }
             }
         }
     }

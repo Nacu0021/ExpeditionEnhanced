@@ -3,15 +3,15 @@ using ItemType = AbstractPhysicalObject.AbstractObjectType;
 
 namespace ExpeditionEnhanced.ExampleContent
 {
-    public class Gourmet : CustomPerk
+    public class Gourmet : EECustomPerk
     {
         public override string ID => "unl-gourmet"; //Needs to start with "unl-"
-        public override string Name => "Gourmet"; //Display name for the perk select menu and the manual
+        public override string DisplayName => "Gourmet"; //Display name for the perk select menu and the manual
         public override string Description => "Start the expedition with 6 random food items!"; //Description for the perk select menu
         public override string ManualDescription => "Start the expedition with 6 random food items, a yummy meal that might help on the first cycle.";
         public override string SpriteName => "Symbol_Gourmet"; //Sprite name used for the perk display in various places
         public override Color Color => new Color (208f / 255f, 165f / 255f, 67f / 255f); //Color in the perk select menu and manual
-        public override bool AlwaysUnlocked => true;
+        public override bool UnlockedByDefault => true;
         public override CustomPerkType PerkType => CustomPerkType.OnStart; //Essentially what the perk does, this one spawns an item/creature at the start of an expedition
         public override ItemType StartItem => ItemType.DangleFruit; //Cant be empty if perk type == OnStart
         public override int StartObjectCount => 6; //The amount of spawned items/creatures

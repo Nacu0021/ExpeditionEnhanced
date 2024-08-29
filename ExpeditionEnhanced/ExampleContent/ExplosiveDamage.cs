@@ -3,10 +3,10 @@ using MoreSlugcats;
 
 namespace ExpeditionEnhanced.ExampleContent
 {
-    public class ExplosiveDamage : CustomPerk
+    public class ExplosiveDamage : EECustomPerk
     {
         public override string ID => "unl-explosivedamage";
-        public override string Name => "Explosive Damage";
+        public override string DisplayName => "Explosive Damage";
         public override string Description => "Your attacks explode!";
         public override string ManualDescription => "All instances of damage dealt by the player cause a small explosion. It's strength depends on the weapon.";
         public override string SpriteName => "Symbol_Volatile";//"OutlawA";

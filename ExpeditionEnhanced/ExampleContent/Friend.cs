@@ -6,15 +6,15 @@ using MSCCreatureType = MoreSlugcats.MoreSlugcatsEnums.CreatureTemplateType;
 
 namespace ExpeditionEnhanced.ExampleContent
 {
-    public class Friend : CustomPerk
+    public class Friend : EECustomPerk
     {
         public override string ID => "unl-friend";
-        public override string Name => "Friend";
+        public override string DisplayName => "Friend";
         public override string Description => "Start the expedition with a lizard friend!";
         public override string ManualDescription => "Start the expedition with a friendly lizard, the type of lizard is different for all base slugcats.";
         public override string SpriteName => "FriendA";
         public override Color Color => new Color (1f, 0.529f, 0.913f);
-        public override bool AlwaysUnlocked => true;
+        public override bool UnlockedByDefault => true;
         public override CustomPerkType PerkType => CustomPerkType.OnStart;
         public override CreatureType StartCreature => CreatureType.PinkLizard;
 
