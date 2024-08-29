@@ -3,12 +3,15 @@
 
 A content mod and a framework for the Expedition gamemode in Rain World.
 
-![thenew](https://github.com/Nacu0021/ExpeditionEnhanced/assets/67332756/05fbdd2c-2d67-4cbb-a63b-5a2a77497b41)
+![image](https://github.com/user-attachments/assets/b30b9fca-6908-4d49-ac19-e8f2692225ae)
 
 
 On it's own the mod adds 8 new perks, and 4 new burdens. All were designed to be fun and a good example of how to add your own stuff!
 
 ## Adding custom content
+**IMPORTANT** - This tutorial is now outdated, adding custom content is very similar but now you have to inherit from EECustomPerk and EECustomBurden, also use Modding.Expedition.CustomPerks/CustomBurdens.Register, and also in general cross examine it with the official support for adding perks/burdens
+
+
 Some basic C# and Rain World modding knowledge is required, and I'll assume it's known.  
 Remember to reference `ExpeditionEnhanced.dll` in your project!  
 Also feel free to poke around the source code and example content in the [Example Content directory](ExpeditionEnhanced/ExampleContent) for any reason.
